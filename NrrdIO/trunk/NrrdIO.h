@@ -43,21 +43,30 @@
 extern "C" {
 #endif
 
-#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
-#define air_export __declspec(dllimport)
-#else
-#define air_export
+/* define TEEM_API */
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
+#  if defined(TEEM_BUILD)
+#    define TEEM_API extern __declspec(dllexport)
+#  else
+#    define TEEM_API extern __declspec(dllimport)
+#  endif
+#else /* TEEM_STATIC || UNIX */
+#  define TEEM_API extern
 #endif
 
-#ifdef _WIN32
-#if _MSC_VER < 1300 || !defined(_USE_MATH_DEFINES)
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-#ifndef M_E
-#define M_E  2.71828182845904523536
-#endif
-#endif
+#if defined(_MSC_VER)
+/* get rid of some warnings on VC++ */
+#  pragma warning ( disable : 4244 )
+#  pragma warning ( disable : 4305 )
+#  pragma warning ( disable : 4309 )
+#  pragma warning ( disable : 4273 )
+/* add essential math definitions */
+#  ifndef M_PI
+#    define M_PI 3.14159265358979323846
+#  endif
+#  ifndef M_E
+#    define M_E  2.71828182845904523536
+#  endif
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -116,12 +125,13 @@ typedef struct {
 		  NULL. */
   int sense;   /* require case matching on strings */
 } airEnum;
-extern int airEnumUnknown(airEnum *enm);
-extern int airEnumValCheck(airEnum *enm, int val);
-extern char *airEnumStr(airEnum *enm, int val);
-extern char *airEnumDesc(airEnum *enm, int val);
-extern int airEnumVal(airEnum *enm, const char *str);
-extern char *airEnumFmtDesc(airEnum *enm, int val, int canon, const char *fmt);
+TEEM_API int airEnumUnknown(airEnum *enm);
+TEEM_API int airEnumValCheck(airEnum *enm, int val);
+TEEM_API char *airEnumStr(airEnum *enm, int val);
+TEEM_API char *airEnumDesc(airEnum *enm, int val);
+TEEM_API int airEnumVal(airEnum *enm, const char *str);
+TEEM_API char *airEnumFmtDesc(airEnum *enm, int val, int canon,
+			      const char *fmt);
 
 /*
 ******** airEndian enum
@@ -137,8 +147,8 @@ enum {
   airEndianLast
 };
 /* endianAir.c */
-extern air_export airEnum *airEndian;
-extern air_export const int airMyEndian;
+TEEM_API airEnum *airEndian;
+TEEM_API const int airMyEndian;
 
 /* array.c: poor-man's dynamically resizable arrays */
 typedef struct {
@@ -178,15 +188,15 @@ typedef struct {
   void (*doneCB)(void *);  /* called on addresses of invalidated elements */
 
 } airArray;
-extern airArray *airArrayNew(void **dataP, int *lenP, size_t unit, int incr);
-extern void airArrayStructCB(airArray *a, 
-			     void (*initCB)(void *), void (*doneCB)(void *));
-extern void airArrayPointerCB(airArray *a, 
-			      void *(*allocCB)(void), void *(*freeCB)(void *));
-extern int airArraySetLen(airArray *a, int newlen);
-extern int airArrayIncrLen(airArray *a, int delta);
-extern airArray *airArrayNix(airArray *a);
-extern airArray *airArrayNuke(airArray *a);
+TEEM_API airArray *airArrayNew(void **dataP, int *lenP, size_t unit, int incr);
+TEEM_API void airArrayStructCB(airArray *a, void (*initCB)(void *),
+			       void (*doneCB)(void *));
+TEEM_API void airArrayPointerCB(airArray *a, void *(*allocCB)(void),
+				void *(*freeCB)(void *));
+TEEM_API int airArraySetLen(airArray *a, int newlen);
+TEEM_API int airArrayIncrLen(airArray *a, int delta);
+TEEM_API airArray *airArrayNix(airArray *a);
+TEEM_API airArray *airArrayNuke(airArray *a);
 
 
 /*
@@ -226,29 +236,29 @@ typedef union {
   airULLong i;
   double d;
 } airDouble;
-extern air_export const int airMyQNaNHiBit;
-extern air_export const int airMyBigBitField;
-extern float airFPPartsToVal_f(int sign, int exp, int frac);
-extern void airFPValToParts_f(int *signP, int *expP, int *fracP, float v);
-extern double airFPPartsToVal_d(int sign, int exp, airULLong frac);
-extern void airFPValToParts_d(int *signP, int *expP, airULLong *fracP,
-			      double v);
-extern float airFPGen_f(int cls);
-extern double airFPGen_d(int cls);
-extern int airFPClass_f(float val);
-extern int airFPClass_d(double val);
-extern void airFPFprintf_f(FILE *file, float val);
-extern void airFPFprintf_d(FILE *file, double val);
-extern air_export const airFloat airFloatQNaN;
-extern air_export const airFloat airFloatSNaN;
-extern air_export const airFloat airFloatPosInf;
-extern air_export const airFloat airFloatNegInf;
-extern float airNaN();
-extern int airIsNaN(float f);
-extern int airIsInf_f(float f);
-extern int airIsInf_d(double d);
-extern int airExists_f(float f);
-extern int airExists_d(double d);
+TEEM_API const int airMyQNaNHiBit;
+TEEM_API const int airMyBigBitField;
+TEEM_API float airFPPartsToVal_f(int sign, int exp, int frac);
+TEEM_API void airFPValToParts_f(int *signP, int *expP, int *fracP, float v);
+TEEM_API double airFPPartsToVal_d(int sign, int exp, airULLong frac);
+TEEM_API void airFPValToParts_d(int *signP, int *expP, airULLong *fracP,
+				double v);
+TEEM_API float airFPGen_f(int cls);
+TEEM_API double airFPGen_d(int cls);
+TEEM_API int airFPClass_f(float val);
+TEEM_API int airFPClass_d(double val);
+TEEM_API void airFPFprintf_f(FILE *file, float val);
+TEEM_API void airFPFprintf_d(FILE *file, double val);
+TEEM_API const airFloat airFloatQNaN;
+TEEM_API const airFloat airFloatSNaN;
+TEEM_API const airFloat airFloatPosInf;
+TEEM_API const airFloat airFloatNegInf;
+TEEM_API float airNaN();
+TEEM_API int airIsNaN(float f);
+TEEM_API int airIsInf_f(float f);
+TEEM_API int airIsInf_d(double d);
+TEEM_API int airExists_f(float f);
+TEEM_API int airExists_d(double d);
 
 /*
 ******** airType
@@ -271,40 +281,40 @@ enum {
 };
 #define AIR_TYPE_MAX   8
 /* parseAir.c */
-extern double airAtod(const char *str);
-extern int airSingleSscanf(const char *str, const char *fmt, void *ptr);
-extern airEnum *airBool;
-extern int airParseStrB(int *out, const char *s,
-			const char *ct, int n, ... /* nothing used */);
-extern int airParseStrI(int *out, const char *s,
-			const char *ct, int n, ... /* nothing used */);
-extern int airParseStrF(float *out, const char *s,
-			const char *ct, int n, ... /* nothing used */);
-extern int airParseStrD(double *out, const char *s,
-			const char *ct, int n, ... /* nothing used */);
-extern int airParseStrC(char *out, const char *s,
-			const char *ct, int n, ... /* nothing used */);
-extern int airParseStrS(char **out, const char *s,
-			const char *ct, int n, ... /* REQUIRED, even if n>1:
-						      int greedy */);
-extern int airParseStrE(int *out, const char *s,
-			const char *ct, int n, ... /* REQUIRED: airEnum *e */);
-extern air_export int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
-					  const char *, int, ...);
+TEEM_API double airAtod(const char *str);
+TEEM_API int airSingleSscanf(const char *str, const char *fmt, void *ptr);
+TEEM_API airEnum *airBool;
+TEEM_API int airParseStrB(int *out, const char *s,
+			  const char *ct, int n, ... /* nothing used */);
+TEEM_API int airParseStrI(int *out, const char *s,
+			  const char *ct, int n, ... /* nothing used */);
+TEEM_API int airParseStrF(float *out, const char *s,
+			  const char *ct, int n, ... /* nothing used */);
+TEEM_API int airParseStrD(double *out, const char *s,
+			  const char *ct, int n, ... /* nothing used */);
+TEEM_API int airParseStrC(char *out, const char *s,
+			  const char *ct, int n, ... /* nothing used */);
+TEEM_API int airParseStrS(char **out, const char *s,
+			  const char *ct, int n, ... /* REQUIRED, even if n>1:
+							int greedy */);
+TEEM_API int airParseStrE(int *out, const char *s,
+			  const char *ct, int n, ... /* REQ'ED: airEnum *e */);
+TEEM_API int (*airParseStr[AIR_TYPE_MAX+1])(void *, const char *,
+					    const char *, int, ...);
 
 /* string.c */
-extern char *airStrdup(const char *s);
-extern size_t airStrlen(const char *s);
-extern air_export int airStrtokQuoting;
-extern char *airStrtok(char *s, const char *ct, char **last);
-extern int airStrntok(const char *s, const char *ct);
-extern char *airStrtrans(char *s, char from, char to);
-extern int airEndsWith(const char *s, const char *suff);
-extern char *airUnescape(char *s);
-extern char *airOneLinify(char *s);
-extern char *airToLower(char *str);
-extern char *airToUpper(char *str);
-extern int airOneLine(FILE *file, char *line, int size);
+TEEM_API char *airStrdup(const char *s);
+TEEM_API size_t airStrlen(const char *s);
+TEEM_API int airStrtokQuoting;
+TEEM_API char *airStrtok(char *s, const char *ct, char **last);
+TEEM_API int airStrntok(const char *s, const char *ct);
+TEEM_API char *airStrtrans(char *s, char from, char to);
+TEEM_API int airEndsWith(const char *s, const char *suff);
+TEEM_API char *airUnescape(char *s);
+TEEM_API char *airOneLinify(char *s);
+TEEM_API char *airToLower(char *str);
+TEEM_API char *airToUpper(char *str);
+TEEM_API int airOneLine(FILE *file, char *line, int size);
 
 /* sane.c */
 /*
@@ -324,24 +334,25 @@ enum {
   airInsane_QNaNHiBit,     /*  6: airMyQNaNHiBit is wrong */
   airInsane_dio,           /*  7: airMyDio set to something invalid */
   airInsane_32Bit,         /*  8: airMy32Bit is wrong */
-  airInsane_FISize,        /*  9: sizeof(float), sizeof(int) not 4 */
-  airInsane_DLSize         /* 10: sizeof(double), sizeof(airLLong) not 8 */
+  airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
+  airInsane_FISize,        /* 10: sizeof(float), sizeof(int) not 4 */
+  airInsane_DLSize         /* 11: sizeof(double), sizeof(airLLong) not 8 */
 };
-#define AIR_INSANE_MAX        10
-extern const char *airInsaneErr(int insane);
-extern int airSanity();
+#define AIR_INSANE_MAX        11
+TEEM_API const char *airInsaneErr(int insane);
+TEEM_API int airSanity();
 
 /* miscAir.c */
-extern air_export const char *airTeemVersion;
-extern air_export const char *airTeemReleaseDate;
-extern void *airNull(void);
-extern void *airSetNull(void **ptrP);
-extern void *airFree(void *ptr);
-extern void *airFreeP(void *_ptrP);
-extern FILE *airFopen(const char *name, FILE *std, const char *mode);
-extern FILE *airFclose(FILE *file);
-extern int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
-extern air_export const int airMy32Bit;
+TEEM_API const char *airTeemVersion;
+TEEM_API const char *airTeemReleaseDate;
+TEEM_API void *airNull(void);
+TEEM_API void *airSetNull(void **ptrP);
+TEEM_API void *airFree(void *ptr);
+TEEM_API void *airFreeP(void *_ptrP);
+TEEM_API FILE *airFopen(const char *name, FILE *std, const char *mode);
+TEEM_API FILE *airFclose(FILE *file);
+TEEM_API int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
+TEEM_API const int airMy32Bit;
 
 /* dio.c */
 /*
@@ -366,13 +377,13 @@ enum {
   airNoDio_disable  /* 12: someone disabled it with airDisableDio */
 };
 #define AIR_NODIO_MAX  12
-extern const char *airNoDioErr(int noDio);
-extern air_export const int airMyDio;
-extern air_export int airDisableDio;
-extern int airDioInfo(int *mem, int *min, int *max, FILE *file);
-extern int airDioTest(size_t size, FILE *file, void *ptr);
-extern size_t airDioRead(FILE *file, void **ptrP, size_t size);
-extern size_t airDioWrite(FILE *file, void *ptr, size_t size);
+TEEM_API const char *airNoDioErr(int noDio);
+TEEM_API const int airMyDio;
+TEEM_API int airDisableDio;
+TEEM_API int airDioInfo(int *mem, int *min, int *max, FILE *file);
+TEEM_API int airDioTest(size_t size, FILE *file, void *ptr);
+TEEM_API size_t airDioRead(FILE *file, void **ptrP, size_t size);
+TEEM_API size_t airDioWrite(FILE *file, void *ptr, size_t size);
 
 /* mop.c: clean-up utilities */
 enum {
@@ -387,17 +398,17 @@ typedef struct {
   airMopper mop;     /* the function to which does the processing */
   int when;          /* from the airMopWhen enum */
 } airMop;
-extern airArray *airMopNew(void);
-extern void airMopAdd(airArray *arr,
+TEEM_API airArray *airMopNew(void);
+TEEM_API void airMopAdd(airArray *arr,
 		      void *ptr, airMopper mop, int when);
-extern void airMopSub(airArray *arr, void *ptr, airMopper mop);
-extern void airMopMem(airArray *arr, void *_ptrP, int when);
-extern void airMopUnMem(airArray *arr, void *_ptrP);
-extern void airMopPrint(airArray *arr, void *_str, int when);
-extern void airMopDone(airArray *arr, int error);
-extern void airMopError(airArray *arr);
-extern void airMopOkay(airArray *arr);
-extern void airMopDebug(airArray *arr);
+TEEM_API void airMopSub(airArray *arr, void *ptr, airMopper mop);
+TEEM_API void airMopMem(airArray *arr, void *_ptrP, int when);
+TEEM_API void airMopUnMem(airArray *arr, void *_ptrP);
+TEEM_API void airMopPrint(airArray *arr, void *_str, int when);
+TEEM_API void airMopDone(airArray *arr, int error);
+TEEM_API void airMopError(airArray *arr);
+TEEM_API void airMopOkay(airArray *arr);
+TEEM_API void airMopDebug(airArray *arr);
 
 /*******     the interminable sea of defines and macros     *******/
 
@@ -738,14 +749,15 @@ extern "C" {
 #define BIFF_MAXKEYLEN 128  /* maximum allowed key length (not counting 
 			       the null termination) */
 
-extern void biffSet(const char *key, const char *err);
-extern void biffAdd(const char *key, const char *err);
-extern void biffMaybeAdd(const char *key, const char *err, int useBiff);
-extern int biffCheck(const char *key);
-extern void biffDone(const char *key);
-extern void biffMove(const char *destKey, const char *err, const char *srcKey);
-extern char *biffGet(const char *key);
-extern char *biffGetDone(const char *key);
+TEEM_API void biffSet(const char *key, const char *err);
+TEEM_API void biffAdd(const char *key, const char *err);
+TEEM_API void biffMaybeAdd(const char *key, const char *err, int useBiff);
+TEEM_API int biffCheck(const char *key);
+TEEM_API void biffDone(const char *key);
+TEEM_API void biffMove(const char *destKey, const char *err,
+		       const char *srcKey);
+TEEM_API char *biffGet(const char *key);
+TEEM_API char *biffGetDone(const char *key);
 
 #ifdef __cplusplus
 }
@@ -1182,12 +1194,6 @@ extern "C" {
 #include <errno.h>
 
 
-#if defined(_WIN32) && !defined(TEEM_STATIC) && !defined(__CYGWIN__)
-#define nrrd_export __declspec(dllimport)
-#else
-#define nrrd_export
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1431,187 +1437,182 @@ typedef struct NrrdIoState_t {
 
 /******** defaults (nrrdDef..) and state (nrrdState..) */
 /* defaultsNrrd.c */
-extern nrrd_export const NrrdEncoding *nrrdDefWriteEncoding;
-extern nrrd_export int nrrdDefWriteBareText;
-extern nrrd_export int nrrdDefWriteCharsPerLine;
-extern nrrd_export int nrrdDefWriteValsPerLine;
-extern nrrd_export int nrrdDefCenter;
-extern nrrd_export double nrrdDefSpacing;
-extern nrrd_export int nrrdStateVerboseIO;
-extern nrrd_export int nrrdStateAlwaysSetContent;
-extern nrrd_export int nrrdStateDisableContent;
-extern nrrd_export char *nrrdStateUnknownContent;
-extern nrrd_export int nrrdStateGrayscaleImage3D;
-extern nrrd_export int nrrdStateKeyValueReturnInternalPointers;
+TEEM_API const NrrdEncoding *nrrdDefWriteEncoding;
+TEEM_API int nrrdDefWriteBareText;
+TEEM_API int nrrdDefWriteCharsPerLine;
+TEEM_API int nrrdDefWriteValsPerLine;
+TEEM_API int nrrdDefCenter;
+TEEM_API double nrrdDefSpacing;
+TEEM_API int nrrdStateVerboseIO;
+TEEM_API int nrrdStateAlwaysSetContent;
+TEEM_API int nrrdStateDisableContent;
+TEEM_API char *nrrdStateUnknownContent;
+TEEM_API int nrrdStateGrayscaleImage3D;
+TEEM_API int nrrdStateKeyValueReturnInternalPointers;
 
 /******** all the airEnums used through-out nrrd */
 /* (the actual C enums are in nrrdEnums.h) */
 /* enumsNrrd.c */
-extern nrrd_export airEnum *nrrdFormatType;
-extern nrrd_export airEnum *nrrdType;
-extern nrrd_export airEnum *nrrdEncodingType;
-extern nrrd_export airEnum *nrrdCenter;
-extern nrrd_export airEnum *nrrdAxisInfo;
-extern nrrd_export airEnum *nrrdField;
+TEEM_API airEnum *nrrdFormatType;
+TEEM_API airEnum *nrrdType;
+TEEM_API airEnum *nrrdEncodingType;
+TEEM_API airEnum *nrrdCenter;
+TEEM_API airEnum *nrrdAxisInfo;
+TEEM_API airEnum *nrrdField;
 
 /******** arrays of things (poor-man's functions/predicates) */
 /* arraysNrrd.c */
-extern nrrd_export char nrrdTypePrintfStr[][AIR_STRLEN_SMALL];
-extern nrrd_export int nrrdTypeSize[];
-extern nrrd_export double nrrdTypeMin[];
-extern nrrd_export double nrrdTypeMax[];
-extern nrrd_export int nrrdTypeIsIntegral[];
-extern nrrd_export int nrrdTypeIsUnsigned[];
-extern nrrd_export double nrrdTypeNumberOfValues[];
+TEEM_API char nrrdTypePrintfStr[][AIR_STRLEN_SMALL];
+TEEM_API int nrrdTypeSize[];
+TEEM_API double nrrdTypeMin[];
+TEEM_API double nrrdTypeMax[];
+TEEM_API int nrrdTypeIsIntegral[];
+TEEM_API int nrrdTypeIsUnsigned[];
+TEEM_API double nrrdTypeNumberOfValues[];
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */
-extern NrrdIoState *nrrdIoStateNew(void);
-extern void nrrdIoStateInit(NrrdIoState *io);
-extern NrrdIoState *nrrdIoStateNix(NrrdIoState *io);
-extern void nrrdInit(Nrrd *nrrd);
-extern Nrrd *nrrdNew(void);
-extern Nrrd *nrrdNix(Nrrd *nrrd);
-extern Nrrd *nrrdEmpty(Nrrd *nrrd);
-extern Nrrd *nrrdNuke(Nrrd *nrrd);
-extern int nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
-			int dim, const int *size);
-extern int nrrdWrap(Nrrd *nrrd, void *data, int type, int dim,
-		    ... /* sx, sy, .., axis(dim-1) size */);
-extern int nrrdCopy(Nrrd *nout, const Nrrd *nin);
-extern int nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, const int *size);
-extern int nrrdAlloc(Nrrd *nrrd, int type, int dim,
-		     ... /* sx, sy, .., axis(dim-1) size */);
-extern int nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim, const int *size);
-extern int nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim,
-			  ... /* sx, sy, .., axis(dim-1) size */);
-extern int nrrdPPM(Nrrd *, int sx, int sy);
-extern int nrrdPGM(Nrrd *, int sx, int sy);
+TEEM_API NrrdIoState *nrrdIoStateNew(void);
+TEEM_API void nrrdIoStateInit(NrrdIoState *io);
+TEEM_API NrrdIoState *nrrdIoStateNix(NrrdIoState *io);
+TEEM_API void nrrdInit(Nrrd *nrrd);
+TEEM_API Nrrd *nrrdNew(void);
+TEEM_API Nrrd *nrrdNix(Nrrd *nrrd);
+TEEM_API Nrrd *nrrdEmpty(Nrrd *nrrd);
+TEEM_API Nrrd *nrrdNuke(Nrrd *nrrd);
+TEEM_API int nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
+			  int dim, const int *size);
+TEEM_API int nrrdWrap(Nrrd *nrrd, void *data, int type, int dim,
+		      ... /* sx, sy, .., axis(dim-1) size */);
+TEEM_API int nrrdCopy(Nrrd *nout, const Nrrd *nin);
+TEEM_API int nrrdAlloc_nva(Nrrd *nrrd, int type, int dim, const int *size);
+TEEM_API int nrrdAlloc(Nrrd *nrrd, int type, int dim,
+		       ... /* sx, sy, .., axis(dim-1) size */);
+TEEM_API int nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, int dim,
+				const int *size);
+TEEM_API int nrrdMaybeAlloc(Nrrd *nrrd, int type, int dim,
+			    ... /* sx, sy, .., axis(dim-1) size */);
+TEEM_API int nrrdPPM(Nrrd *, int sx, int sy);
+TEEM_API int nrrdPGM(Nrrd *, int sx, int sy);
 
 /******** axis info related */
 /* axis.c */
-extern int nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin,
-			    const int *axmap, int bitflag);
-extern void nrrdAxisInfoSet_nva(Nrrd *nin, int axInfo, const void *info);
-extern void nrrdAxisInfoSet(Nrrd *nin, int axInfo,
-			    ... /* const void* */);
-extern void nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *info);
-extern void nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo,
-			    ... /* void* */);
-extern double nrrdAxisPos(const Nrrd *nrrd, int ax, double idx);
-extern double nrrdAxisIdx(const Nrrd *nrrd, int ax, double pos);
-extern void nrrdAxisPosRange(double *loP, double *hiP,
-			     const Nrrd *nrrd, int ax,
-			     double loIdx, double hiIdx);
-extern void nrrdAxisIdxRange(double *loP, double *hiP,
-			     const Nrrd *nrrd, int ax,
-			     double loPos, double hiPos);
-extern void nrrdAxisSpacingSet(Nrrd *nrrd, int ax);
-extern void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
+TEEM_API int nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin,
+			      const int *axmap, int bitflag);
+TEEM_API void nrrdAxisInfoSet_nva(Nrrd *nin, int axInfo, const void *info);
+TEEM_API void nrrdAxisInfoSet(Nrrd *nin, int axInfo,
+			      ... /* const void* */);
+TEEM_API void nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *info);
+TEEM_API void nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo,
+			      ... /* void* */);
+TEEM_API double nrrdAxisPos(const Nrrd *nrrd, int ax, double idx);
+TEEM_API double nrrdAxisIdx(const Nrrd *nrrd, int ax, double pos);
+TEEM_API void nrrdAxisPosRange(double *loP, double *hiP,
+			       const Nrrd *nrrd, int ax,
+			       double loIdx, double hiIdx);
+TEEM_API void nrrdAxisIdxRange(double *loP, double *hiP,
+			       const Nrrd *nrrd, int ax,
+			       double loPos, double hiPos);
+TEEM_API void nrrdAxisSpacingSet(Nrrd *nrrd, int ax);
+TEEM_API void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
 
 /******** simple things */
 /* simple.c */
-extern nrrd_export const char *nrrdBiffKey;
-extern const Nrrd **nrrdCNPP(Nrrd **nin, int N);
-extern int nrrdPeripheralInit(Nrrd *nrrd);
-extern int nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin);
-extern int nrrdContentSet(Nrrd *nout, const char *func,
-			  const Nrrd *nin, const char *format,
-			  ... /* printf-style arg list */ );
-extern void nrrdDescribe(FILE *file, const Nrrd *nrrd);
-extern int nrrdCheck(const Nrrd *nrrd);
-extern int nrrdElementSize(const Nrrd *nrrd);
-extern size_t nrrdElementNumber(const Nrrd *nrrd);
-extern int nrrdSanity(void);
-extern int nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff);
+TEEM_API const char *nrrdBiffKey;
+TEEM_API const Nrrd **nrrdCNPP(Nrrd **nin, int N);
+TEEM_API int nrrdPeripheralInit(Nrrd *nrrd);
+TEEM_API int nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin);
+TEEM_API int nrrdContentSet(Nrrd *nout, const char *func,
+			    const Nrrd *nin, const char *format,
+			    ... /* printf-style arg list */ );
+TEEM_API void nrrdDescribe(FILE *file, const Nrrd *nrrd);
+TEEM_API int nrrdCheck(const Nrrd *nrrd);
+TEEM_API int nrrdElementSize(const Nrrd *nrrd);
+TEEM_API size_t nrrdElementNumber(const Nrrd *nrrd);
+TEEM_API int nrrdSanity(void);
+TEEM_API int nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff);
 
 /******** comments related */
 /* comment.c */
-extern int nrrdCommentAdd(Nrrd *nrrd, const char *str);
-extern void nrrdCommentClear(Nrrd *nrrd);
-extern int nrrdCommentCopy(Nrrd *nout, const Nrrd *nin);
+TEEM_API int nrrdCommentAdd(Nrrd *nrrd, const char *str);
+TEEM_API void nrrdCommentClear(Nrrd *nrrd);
+TEEM_API int nrrdCommentCopy(Nrrd *nout, const Nrrd *nin);
 
 /******** key/value pairs */
 /* keyvalue.c */
-extern int nrrdKeyValueSize(const Nrrd *nrrd);
-extern int nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value);
-extern char *nrrdKeyValueGet(const Nrrd *nrrd, const char *key);
-extern void nrrdKeyValueIndex(const Nrrd *nrrd, 
+TEEM_API int nrrdKeyValueSize(const Nrrd *nrrd);
+TEEM_API int nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value);
+TEEM_API char *nrrdKeyValueGet(const Nrrd *nrrd, const char *key);
+TEEM_API void nrrdKeyValueIndex(const Nrrd *nrrd, 
 			      char **keyP, char **valueP, int ki);
-extern int nrrdKeyValueErase(Nrrd *nrrd, const char *key);
-extern void nrrdKeyValueClear(Nrrd *nrrd);
-extern int nrrdKeyValueCopy(Nrrd *nout, const Nrrd *nin);
+TEEM_API int nrrdKeyValueErase(Nrrd *nrrd, const char *key);
+TEEM_API void nrrdKeyValueClear(Nrrd *nrrd);
+TEEM_API int nrrdKeyValueCopy(Nrrd *nout, const Nrrd *nin);
 
 /******** endian related */
 /* endianNrrd.c */
-extern void nrrdSwapEndian(Nrrd *nrrd);
+TEEM_API void nrrdSwapEndian(Nrrd *nrrd);
 
 /******** getting information to and from files */
 /* formatXXX.c */
-extern nrrd_export const NrrdFormat *const nrrdFormatNRRD;
-extern nrrd_export const NrrdFormat *const nrrdFormatPNM;
-extern nrrd_export const NrrdFormat *const nrrdFormatPNG;
-extern nrrd_export const NrrdFormat *const nrrdFormatVTK;
-extern nrrd_export const NrrdFormat *const nrrdFormatText;
-extern nrrd_export const NrrdFormat *const nrrdFormatEPS;
+TEEM_API const NrrdFormat *const nrrdFormatNRRD;
+TEEM_API const NrrdFormat *const nrrdFormatPNM;
+TEEM_API const NrrdFormat *const nrrdFormatPNG;
+TEEM_API const NrrdFormat *const nrrdFormatVTK;
+TEEM_API const NrrdFormat *const nrrdFormatText;
+TEEM_API const NrrdFormat *const nrrdFormatEPS;
 /* format.c */
-extern nrrd_export const NrrdFormat *const nrrdFormatUnknown;
-extern nrrd_export const NrrdFormat *
+TEEM_API const NrrdFormat *const nrrdFormatUnknown;
+TEEM_API const NrrdFormat *
   const nrrdFormatArray[NRRD_FORMAT_TYPE_MAX+1];
 /* encodingXXX.c */
-extern nrrd_export const NrrdEncoding *const nrrdEncodingRaw;
-extern nrrd_export const NrrdEncoding *const nrrdEncodingAscii;
-extern nrrd_export const NrrdEncoding *const nrrdEncodingHex;
-extern nrrd_export const NrrdEncoding *const nrrdEncodingGzip;
-extern nrrd_export const NrrdEncoding *const nrrdEncodingBzip2;
+TEEM_API const NrrdEncoding *const nrrdEncodingRaw;
+TEEM_API const NrrdEncoding *const nrrdEncodingAscii;
+TEEM_API const NrrdEncoding *const nrrdEncodingHex;
+TEEM_API const NrrdEncoding *const nrrdEncodingGzip;
+TEEM_API const NrrdEncoding *const nrrdEncodingBzip2;
 /* encoding.c */
-extern nrrd_export const NrrdEncoding *const nrrdEncodingUnknown;
-extern nrrd_export const NrrdEncoding *
+TEEM_API const NrrdEncoding *const nrrdEncodingUnknown;
+TEEM_API const NrrdEncoding *
   const nrrdEncodingArray[NRRD_ENCODING_TYPE_MAX+1];
 /* read.c */
-extern int nrrdLineSkip(NrrdIoState *io);
-extern int nrrdByteSkip(Nrrd *nrrd, NrrdIoState *io);
-extern int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *io);
-extern int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *io);
+TEEM_API int nrrdLineSkip(NrrdIoState *io);
+TEEM_API int nrrdByteSkip(Nrrd *nrrd, NrrdIoState *io);
+TEEM_API int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *io);
+TEEM_API int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *io);
 /* write.c */
-extern int nrrdIoStateSet(NrrdIoState *io, int parm, int value);
-extern int nrrdIoStateSetEncoding(NrrdIoState *io,
-				  const NrrdEncoding *encoding);
-extern int nrrdIoStateSetFormat(NrrdIoState *io, 
-				const NrrdFormat *format);
-extern int nrrdIoStateGet(NrrdIoState *io, int parm);
-extern const NrrdEncoding *nrrdIoStateGetEncoding(NrrdIoState *io);
-extern const NrrdFormat *nrrdIoStateBetFormat(NrrdIoState *io);
-extern int nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *io);
-extern int nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *io);
+TEEM_API int nrrdIoStateSet(NrrdIoState *io, int parm, int value);
+TEEM_API int nrrdIoStateSetEncoding(NrrdIoState *io,
+				    const NrrdEncoding *encoding);
+TEEM_API int nrrdIoStateSetFormat(NrrdIoState *io, 
+				  const NrrdFormat *format);
+TEEM_API int nrrdIoStateGet(NrrdIoState *io, int parm);
+TEEM_API const NrrdEncoding *nrrdIoStateGetEncoding(NrrdIoState *io);
+TEEM_API const NrrdFormat *nrrdIoStateBetFormat(NrrdIoState *io);
+TEEM_API int nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *io);
+TEEM_API int nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *io);
 
 /******** getting value into and out of an array of general type, and
    all other simplistic functionality pseudo-parameterized by type */
 /* accessors.c */
-extern nrrd_export int    (*nrrdILoad[NRRD_TYPE_MAX+1])(const void *v);
-extern nrrd_export float  (*nrrdFLoad[NRRD_TYPE_MAX+1])(const void *v);
-extern nrrd_export double (*nrrdDLoad[NRRD_TYPE_MAX+1])(const void *v);
-extern nrrd_export int    (*nrrdIStore[NRRD_TYPE_MAX+1])(void *v, int j);
-extern nrrd_export float  (*nrrdFStore[NRRD_TYPE_MAX+1])(void *v, float f);
-extern nrrd_export double (*nrrdDStore[NRRD_TYPE_MAX+1])(void *v, double d);
-extern nrrd_export int    (*nrrdILookup[NRRD_TYPE_MAX+1])(const void *v, 
-							  size_t I);
-extern nrrd_export float  (*nrrdFLookup[NRRD_TYPE_MAX+1])(const void *v, 
-							  size_t I);
-extern nrrd_export double (*nrrdDLookup[NRRD_TYPE_MAX+1])(const void *v, 
-							  size_t I);
-extern nrrd_export int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v,
-							  size_t I, int j);
-extern nrrd_export float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v,
-							  size_t I, float f);
-extern nrrd_export double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v,
-							  size_t I, double d);
-extern nrrd_export int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *);
+TEEM_API int    (*nrrdILoad[NRRD_TYPE_MAX+1])(const void *v);
+TEEM_API float  (*nrrdFLoad[NRRD_TYPE_MAX+1])(const void *v);
+TEEM_API double (*nrrdDLoad[NRRD_TYPE_MAX+1])(const void *v);
+TEEM_API int    (*nrrdIStore[NRRD_TYPE_MAX+1])(void *v, int j);
+TEEM_API float  (*nrrdFStore[NRRD_TYPE_MAX+1])(void *v, float f);
+TEEM_API double (*nrrdDStore[NRRD_TYPE_MAX+1])(void *v, double d);
+TEEM_API int    (*nrrdILookup[NRRD_TYPE_MAX+1])(const void *v, size_t I);
+TEEM_API float  (*nrrdFLookup[NRRD_TYPE_MAX+1])(const void *v, size_t I);
+TEEM_API double (*nrrdDLookup[NRRD_TYPE_MAX+1])(const void *v, size_t I);
+TEEM_API int    (*nrrdIInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, int j);
+TEEM_API float  (*nrrdFInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, float f);
+TEEM_API double (*nrrdDInsert[NRRD_TYPE_MAX+1])(void *v, size_t I, double d);
+TEEM_API int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *);
 
 
 /******** permuting, shuffling, and all flavors of reshaping */
 /* reorder.c */
-extern int nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax);
+TEEM_API int nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax);
 
 #ifdef __cplusplus
 }
