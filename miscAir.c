@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
  
   These source files have been copied and/or modified from teem,
   Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
@@ -48,9 +48,9 @@
 ** the teem version number and release date.  Originated in version 1.5.
 */
 const char *
-airTeemVersion = "1.7 pre-release";
+airTeemVersion = "1.8 pre-release";
 const char *
-airTeemReleaseDate = "XX XXX 200X";
+airTeemReleaseDate = "XX XXX 2004";
 
 /*
 ******** airNull()

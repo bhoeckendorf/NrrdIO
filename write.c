@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
  
   These source files have been copied and/or modified from teem,
   Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
@@ -106,8 +106,8 @@ nrrdIoStateSet (NrrdIoState *nio, int parm, int value) {
 }
 
 int
-nrrdIoStateSetEncoding (NrrdIoState *nio, const NrrdEncoding *encoding) {
-  char me[]="nrrdIoStateSetEncoding", err[AIR_STRLEN_MED];
+nrrdIoStateEncodingSet (NrrdIoState *nio, const NrrdEncoding *encoding) {
+  char me[]="nrrdIoStateEncodingSet", err[AIR_STRLEN_MED];
 
   if (!( nio && encoding )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -127,8 +127,8 @@ nrrdIoStateSetEncoding (NrrdIoState *nio, const NrrdEncoding *encoding) {
 }
 
 int
-nrrdIoStateSetFormat (NrrdIoState *nio, const NrrdFormat *format) {
-  char me[]="nrrdIoStateSetFormat", err[AIR_STRLEN_MED];
+nrrdIoStateFormatSet (NrrdIoState *nio, const NrrdFormat *format) {
+  char me[]="nrrdIoStateFormatSet", err[AIR_STRLEN_MED];
 
   if (!( nio && format )) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -201,7 +201,7 @@ nrrdIoStateGet (NrrdIoState *nio, int parm) {
 ** no biff
 */
 const NrrdEncoding *
-nrrdIoStateGetEncoding (NrrdIoState *nio) {
+nrrdIoStateEncodingGet (NrrdIoState *nio) {
 
   return nio ? nio->encoding : nrrdEncodingUnknown;
 }
@@ -210,7 +210,7 @@ nrrdIoStateGetEncoding (NrrdIoState *nio) {
 ** no biff
 */
 const NrrdFormat *
-nrrdIoStateGetFormat (NrrdIoState *nio) {
+nrrdIoStateFormatGet (NrrdIoState *nio) {
 
   return nio ? nio->format : nrrdFormatUnknown;
 }
@@ -269,6 +269,11 @@ _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio, int field) {
   case nrrdField_centers:
     for (d=0; d<nrrd->dim; d++) {
       ret |= (nrrdCenterUnknown != nrrd->axis[d].center);
+    }
+    break;
+  case nrrdField_kinds:
+    for (d=0; d<nrrd->dim; d++) {
+      ret |= (nrrdKindUnknown != nrrd->axis[d].kind);
     }
     break;
   case nrrdField_labels:
@@ -420,6 +425,17 @@ _nrrdSprintFieldInfo (char **strP, char *prefix,
       sprintf(buff, " %s",
 	      (nrrd->axis[i].center 
 	       ? airEnumStr(nrrdCenter, nrrd->axis[i].center)
+	       : NRRD_UNKNOWN));
+      strcat(*strP, buff);
+    }
+    break;
+  case nrrdField_kinds:
+    *strP = malloc(fslen + D*10);
+    sprintf(*strP, "%s%s:", prefix, fs);
+    for (i=0; i<D; i++) {
+      sprintf(buff, " %s",
+	      (nrrd->axis[i].kind
+	       ? airEnumStr(nrrdKind, nrrd->axis[i].kind)
 	       : NRRD_UNKNOWN));
       strcat(*strP, buff);
     }

@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
  
   These source files have been copied and/or modified from teem,
   Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
@@ -73,6 +73,10 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
   }
   /* the ONLY thing we can say about the new axis is its size */
   _nrrdAxisInfoInit(&(nout->axis[ax]));
+  if (!nrrdStateKindNoop) {
+    /* except maybe the kind */
+    nout->axis[ax].kind = nrrdKindStub;
+  }
   nout->axis[ax].size = 1;
   if (nrrdContentSet(nout, func, nin, "%d", ax)) {
     sprintf(err, "%s:", me);

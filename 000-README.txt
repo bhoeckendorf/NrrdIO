@@ -1,6 +1,6 @@
 
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2003 University of Utah
+  Copyright (C) 2004, 2003 University of Utah
  
   These source files have been copied and/or modified from teem,
   Gordon Kindlmann's research software; <http://teem.sourceforge.net>.

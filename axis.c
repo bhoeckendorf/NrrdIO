@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
  
   These source files have been copied and/or modified from teem,
   Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
@@ -34,15 +34,16 @@
 /* ------------------------------------------------------------ */
 
 void
-_nrrdAxisInfoInit(NrrdAxis *axis) {
+_nrrdAxisInfoInit(NrrdAxisInfo *axis) {
   
   if (axis) {
     axis->size = 0;
     axis->spacing = AIR_NAN;
     axis->min = axis->max = AIR_NAN;
-    AIR_FREE(axis->label);
-    AIR_FREE(axis->unit);
+    axis->label = airFree(axis->label);
+    axis->unit = airFree(axis->unit);
     axis->center = nrrdCenterUnknown;
+    axis->kind = nrrdKindUnknown;
   }
 }
 
@@ -50,7 +51,7 @@ _nrrdAxisInfoInit(NrrdAxis *axis) {
 nrrdAxisInfoNew(void) {
   nrrdAxisInfo *axis;
 
-  axis = calloc(1, sizeof(NrrdAxis));
+  axis = calloc(1, sizeof(NrrdAxisInfo));
   axis->label = NULL;
   axis->unit = NULL;
   if (axis) {
@@ -59,13 +60,13 @@ nrrdAxisInfoNew(void) {
   return axis;
 }
 
-NrrdAxis *
-nrrdAxisInfoNix(NrrdAxis *axis) {
+NrrdAxisInfo *
+nrrdAxisInfoNix(NrrdAxisInfo *axis) {
 
   if (axis) {
-    AIR_FREE(axis->label);
-    AIR_FREE(axis->unit);
-    AIR_FREE(axis);
+    axis->label = airFree(axis->label);
+    axis->unit = airFree(axis->unit);
+    axis = airFree(axis);
   }
   return NULL;
 }
@@ -73,8 +74,96 @@ nrrdAxisInfoNix(NrrdAxis *axis) {
 
 /* ------------------------------------------------------------ */
 
+
+/*
+******** nrrdKindSize
+**
+** returns suggested size (length) of an axis with the given kind, or,
+** 0 if there is no suggested size, or the kind was invalid
+*/
+int
+nrrdKindSize(int kind) {
+  char me[]="nrrdKindSize";
+  int ret;
+  
+  if (!( AIR_IN_OP(nrrdKindUnknown, kind, nrrdKindLast) )) {
+    /* they gave us invalid or unknown kind */
+    return 0;
+  }
+
+  switch (kind) {
+  case nrrdKindDomain:
+  case nrrdKindList:
+    ret = 0;
+    break;
+  case nrrdKindStub:
+  case nrrdKindScalar:
+    ret = 1;
+    break;
+  case nrrdKindComplex:
+  case nrrdKind2Vector:
+    ret = 2;
+    break;
+  case nrrdKind3Color:
+  case nrrdKind3Vector:
+  case nrrdKind3Normal:
+    ret = 3;
+    break;
+  case nrrdKind4Color:
+  case nrrdKind4Vector:
+    ret = 4;
+    break;
+  case nrrdKind2DSymTensor:
+    ret = 3;
+    break;
+  case nrrdKind2DMaskedSymTensor:
+    ret = 4;
+    break;
+  case nrrdKind2DTensor:
+    ret = 4;
+    break;
+  case nrrdKind2DMaskedTensor:
+    ret = 5;
+    break;
+  case nrrdKind3DSymTensor:
+    ret = 6;
+    break;
+  case nrrdKind3DMaskedSymTensor:
+    ret = 7;
+    break;
+  case nrrdKind3DTensor:
+    ret = 9;
+    break;
+  case nrrdKind3DMaskedTensor:
+    ret = 10;
+    break;
+  default:
+    fprintf(stderr, "%s: PANIC: nrrdKind %d not implemented!\n", me, kind);
+    exit(1);
+  }
+
+  return ret;
+}
+
+int
+_nrrdKindAltered(int kindIn) {
+  int kindOut;
+
+  if (nrrdStateKindNoop) {
+    kindOut = nrrdKindUnknown;
+  } else {
+    if (nrrdKindDomain == kindIn
+	|| nrrdKindList == kindIn) {
+      kindOut = kindIn;
+    } else {
+      kindOut = nrrdKindUnknown;
+    }
+  }
+  return kindOut;
+}
+
 void
-_nrrdAxisInfoCopy(NrrdAxis *dest, const NrrdAxis *src, int bitflag) {
+_nrrdAxisInfoCopy(NrrdAxisInfo *dest, const NrrdAxisInfo *src, int bitflag) {
 
   if (!(NRRD_AXIS_INFO_SIZE_BIT & bitflag)) {
     dest->size = src->size;
@@ -91,15 +180,18 @@ _nrrdAxisInfoCopy(NrrdAxis *dest, const NrrdAxis *src, int bitflag) {
   if (!(NRRD_AXIS_INFO_CENTER_BIT & bitflag)) {
     dest->center = src->center;
   }
+  if (!(NRRD_AXIS_INFO_KIND_BIT & bitflag)) {
+    dest->kind = src->kind;
+  }
   if (!(NRRD_AXIS_INFO_LABEL_BIT & bitflag)) {
     if (dest->label != src->label) {
-      AIR_FREE(dest->label);
+      dest->label = airFree(dest->label);
       dest->label = airStrdup(src->label);
     }
   }
   if (!(NRRD_AXIS_INFO_UNIT_BIT & bitflag)) {
     if (dest->unit != src->unit) {
-      AIR_FREE(dest->unit);
+      dest->unit = airFree(dest->unit);
       dest->unit = airStrdup(src->unit);
     }
   }
@@ -194,12 +286,15 @@ nrrdAxisInfoSet_nva(Nrrd *nrrd, int axInfo, const void *_info) {
     case nrrdAxisInfoCenter:
       nrrd->axis[d].center = info.I[d];
       break;
+    case nrrdAxisInfoKind:
+      nrrd->axis[d].kind = info.I[d];
+      break;
     case nrrdAxisInfoLabel:
-      AIR_FREE(nrrd->axis[d].label);
+      nrrd->axis[d].label = airFree(nrrd->axis[d].label);
       nrrd->axis[d].label = airStrdup(info.CP[d]);
       break;
     case nrrdAxisInfoUnit:
-      AIR_FREE(nrrd->axis[d].unit);
+      nrrd->axis[d].unit = airFree(nrrd->axis[d].unit);
       nrrd->axis[d].unit = airStrdup(info.CP[d]);
       break;
     }
@@ -236,6 +331,7 @@ nrrdAxisInfoSet(Nrrd *nrrd, int axInfo, ...) {
       */
       break;
     case nrrdAxisInfoCenter:
+    case nrrdAxisInfoKind:
       info.I[d] = va_arg(ap, int);
       /*
       printf("!%s: got int[%d] = %d\n", 
@@ -314,6 +410,9 @@ nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *_info) {
     case nrrdAxisInfoCenter:
       info.I[d] = nrrd->axis[d].center;
       break;
+    case nrrdAxisInfoKind:
+      info.I[d] = nrrd->axis[d].kind;
+      break;
     case nrrdAxisInfoLabel:
       /* note airStrdup()! */
       info.CP[d] = airStrdup(nrrd->axis[d].label);
@@ -361,6 +460,7 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
        *((double*)ptr)); */
       break;
     case nrrdAxisInfoCenter:
+    case nrrdAxisInfoKind:
       *((int*)ptr) = info.I[d];
       /* printf("!%s: got int[%d] = %d\n", 
 	 "nrrdAxisInfoGet", d, *((int*)ptr)); */
@@ -415,7 +515,7 @@ _nrrdCenter2(int center, int defCenter) {
 
 
 /*
-******** nrrdAxisPos()
+******** nrrdAxisInfoPos()
 ** 
 ** given a nrrd, an axis, and a (floating point) index space position,
 ** return the position implied the axis's min, max, and center
@@ -424,7 +524,7 @@ _nrrdCenter2(int center, int defCenter) {
 ** does not use biff
 */
 double
-nrrdAxisPos(const Nrrd *nrrd, int ax, double idx) {
+nrrdAxisInfoPos(const Nrrd *nrrd, int ax, double idx) {
   int center, size;
   double min, max;
   
@@ -440,7 +540,7 @@ nrrdAxisPos(const Nrrd *nrrd, int ax, double idx) {
 }
 
 /*
-******** nrrdAxisIdx()
+******** nrrdAxisInfoIdx()
 ** 
 ** given a nrrd, an axis, and a (floating point) world space position,
 ** return the index implied the axis's min, max, and center.
@@ -449,7 +549,7 @@ nrrdAxisPos(const Nrrd *nrrd, int ax, double idx) {
 ** does not use biff
 */
 double
-nrrdAxisIdx(const Nrrd *nrrd, int ax, double pos) {
+nrrdAxisInfoIdx(const Nrrd *nrrd, int ax, double pos) {
   int center, size;
   double min, max;
   
@@ -465,16 +565,16 @@ nrrdAxisIdx(const Nrrd *nrrd, int ax, double pos) {
 }
 
 /*
-******** nrrdAxisPosRange()
+******** nrrdAxisInfoPosRange()
 **
 ** given a nrrd, an axis, and two (floating point) index space positions,
 ** return the range of positions implied the axis's min, max, and center
 ** The opposite of nrrdAxisIdxRange()
 */
 void
-nrrdAxisPosRange(double *loP, double *hiP,
-		 const Nrrd *nrrd, int ax, 
-		 double loIdx, double hiIdx) {
+nrrdAxisInfoPosRange(double *loP, double *hiP,
+		     const Nrrd *nrrd, int ax, 
+		     double loIdx, double hiIdx) {
   int center, size, flip = 0;
   double min, max, tmp;
 
@@ -506,7 +606,7 @@ nrrdAxisPosRange(double *loP, double *hiP,
 }
 
 /*
-******** nrrdAxisIdxRange()
+******** nrrdAxisInfoIdxRange()
 **
 ** given a nrrd, an axis, and two (floating point) world space positions,
 ** return the range of index space implied the axis's min, max, and center
@@ -523,9 +623,9 @@ nrrdAxisPosRange(double *loP, double *hiP,
 ** to nrrdAxisIdxRange()) loPos < hiPos, but *loP > *hiP.
 */
 void
-nrrdAxisIdxRange(double *loP, double *hiP,
-		 const Nrrd *nrrd, int ax, 
-		 double loPos, double hiPos) {
+nrrdAxisInfoIdxRange(double *loP, double *hiP,
+		     const Nrrd *nrrd, int ax, 
+		     double loPos, double hiPos) {
   int center, size, flip = 0;
   double min, max, tmp;
 
@@ -562,7 +662,7 @@ nrrdAxisIdxRange(double *loP, double *hiP,
 }
 
 void
-nrrdAxisSpacingSet(Nrrd *nrrd, int ax) {
+nrrdAxisInfoSpacingSet(Nrrd *nrrd, int ax) {
   int sign;
   double min, max, tmp;
 
@@ -594,7 +694,7 @@ nrrdAxisSpacingSet(Nrrd *nrrd, int ax) {
 }
 
 void
-nrrdAxisMinMaxSet(Nrrd *nrrd, int ax, int defCenter) {
+nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter) {
   int center;
   double spacing;
 

@@ -24,9 +24,9 @@
 ###
 PLATFORM_DEFS = \
   -DTEEM_DIO=0 \
-  -DTEEM_32BIT=0 \
+  -DTEEM_32BIT=1 \
   -DTEEM_ENDIAN=4321 \
-  -DTEEM_QNANHIBIT=0 \
+  -DTEEM_QNANHIBIT=1 \
   -DTEEM_BIGBITFIELD=1
 
 ### Assuming NrrdIO will be built with zlib enabled (due to "-DTEEM_ZLIB=1"
@@ -45,17 +45,18 @@ all: $(ALL)
 ### named in NrrdIO_Srcs.txt
 ###
 libNrrdIO.a : $(patsubst %.c,%.o,$(shell cat NrrdIO_Srcs.txt))
-	ar ru -o $@ $^
+	ar ru $@ $^
+	ranlib $@
 
 ### Compiling the source files will also have some platform-specific stuff
 ###
 %.o : %.c
-	cc -O2 -64 $(PLATFORM_DEFS) -DTEEM_ZLIB=1 $(ZLIB_IPATH) -c $^ -o $@
+	cc -O2 $(PLATFORM_DEFS) -DTEEM_ZLIB=1 $(ZLIB_IPATH) -c $^ -o $@
 
 ### this creates the sampleIO program
 ###
 sampleIO : sampleIO.c
-	cc -O2 -64 $(PLATFORM_DEFS) -DTEEM_ZLIB=1 $(ZLIB_IPATH) \
+	cc -O2 $(PLATFORM_DEFS) -DTEEM_ZLIB=1 $(ZLIB_IPATH) \
 	$^ -o $@ -L. -lNrrdIO $(ZLIB_LPATH) -lz -lm
 
 ### how to clean up

@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
  
   These source files have been copied and/or modified from teem,
   Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
@@ -38,10 +38,10 @@ void
 nrrdIoStateInit (NrrdIoState *nio) {
 
   if (nio) {
-    AIR_FREE(nio->path);
-    AIR_FREE(nio->base);
-    AIR_FREE(nio->dataFN);
-    AIR_FREE(nio->line);
+    nio->path = airFree(nio->path);
+    nio->base = airFree(nio->base);
+    nio->dataFN = airFree(nio->dataFN);
+    nio->line = airFree(nio->line);
     nio->lineLen = 0;
     nio->pos = 0;
     /* closing this is always someone else's responsibility */
@@ -87,12 +87,12 @@ nrrdIoStateNew (void) {
 
 NrrdIoState *
 nrrdIoStateNix (NrrdIoState *nio) {
-
-  AIR_FREE(nio->path);
-  AIR_FREE(nio->base);
-  AIR_FREE(nio->dataFN);
-  AIR_FREE(nio->line);
-  AIR_FREE(nio);
+  
+  nio->path = airFree(nio->path);
+  nio->base = airFree(nio->base);
+  nio->dataFN = airFree(nio->dataFN);
+  nio->line = airFree(nio->line);
+  nio = airFree(nio);
   /* the NrrdIoState never owned nio->oldData; we don't free it */
   return NULL;
 }
@@ -116,7 +116,7 @@ nrrdInit (Nrrd *nrrd) {
   int i;
 
   if (nrrd) {
-    AIR_FREE(nrrd->data);
+    nrrd->data = airFree(nrrd->data);
     nrrd->type = nrrdTypeUnknown;
     nrrd->dim = 0;
     
@@ -124,7 +124,7 @@ nrrdInit (Nrrd *nrrd) {
       _nrrdAxisInfoInit(&(nrrd->axis[i]));
     }
     
-    AIR_FREE(nrrd->content);
+    nrrd->content = airFree(nrrd->content);
     nrrd->blockSize = 0;
     nrrd->oldMin = nrrd->oldMax = AIR_NAN;
     /* nrrd->ptr = NULL; */
@@ -200,16 +200,16 @@ nrrdNix (Nrrd *nrrd) {
   int i;
   
   if (nrrd) {
-    AIR_FREE(nrrd->content);
+    nrrd->content = airFree(nrrd->content);
     /* HEY: this is a symptom of some stupidity, no? */
     for (i=0; i<NRRD_DIM_MAX; i++) {
-      AIR_FREE(nrrd->axis[i].label);
+      nrrd->axis[i].label = airFree(nrrd->axis[i].label);
     }
     nrrdCommentClear(nrrd);
     nrrd->cmtArr = airArrayNix(nrrd->cmtArr);
     nrrdKeyValueClear(nrrd);
     nrrd->kvpArr = airArrayNix(nrrd->kvpArr);
-    AIR_FREE(nrrd);
+    nrrd = airFree(nrrd);
   }
   return NULL;
 }
@@ -225,7 +225,7 @@ Nrrd *
 nrrdEmpty (Nrrd *nrrd) {
   
   if (nrrd) {
-    AIR_FREE(nrrd->data);
+    nrrd->data = airFree(nrrd->data);
     nrrdInit(nrrd);
   }
   return nrrd;
@@ -356,6 +356,61 @@ _nrrdTraverse (Nrrd *nrrd) {
 */
 
 /*
+** _nrrdCopyShallow
+**
+** Similar to nrrdCopy, but the data itself is not copied.  nout->data
+** and nout->data will share a pointer to the data.  This should be
+** used with extreem caution, because there is no pointer magic to
+** make sure the data is not freed twice.
+*/
+int
+_nrrdCopyShallow (Nrrd *nout, const Nrrd *nin) {
+  char me[]="_nrrdCopyShallow", err[AIR_STRLEN_MED];
+  Nrrd *ntmp;
+  airArray *mop;
+
+  if (!(nin && nout)) {
+    sprintf(err, "%s: got NULL pointer", me);
+    biffAdd(NRRD, err); return 1;
+  }
+
+  /* We're not using nrrdNew() because it allocates new airArray's for
+     comments (cmtArr) and key/value pairs (kvpArr), which we do not
+     need here, and which we don't want to have to explicitly delete */
+  ntmp = (Nrrd*)(calloc(1, sizeof(Nrrd)));
+  if (!ntmp) {
+    sprintf(err, "%s: error allocating temporary nrrd.", me);
+    biffAdd(NRRD, err); return 1;
+  }
+  /* Since we should never have copied the data, or allocated new meta-data,
+     we want to make sure that we don't delete it here. */
+  mop = airMopNew();
+  airMopAdd(mop, ntmp, airFree, airMopAlways);
+  
+  /* Shallow copy the contents of the nrrd.  It's OK if this is not a
+     deep copy (i.e. all the axis info), because nrrdCopy will do this
+     for us.  This is only to facilitate setting the data pointer to
+     NULL which will cause nrrdCopy to not copy the data. */
+  memcpy(ntmp, nin, sizeof(Nrrd));
+
+  /* Setting this to NULL will cause nrrdCopy to not copy the data */
+  ntmp->data = NULL;
+  
+  if (nrrdCopy(nout, ntmp)) {
+    sprintf(err, "%s: couldn't copy to output", me);
+    biffAdd(NRRD, err);
+    airMopError(mop);
+    return 1;
+  }
+
+  /* Share the data pointer */
+  nout->data = nin->data;
+
+  airMopOkay(mop);
+  return 0;
+}
+
+/*
 ******** nrrdCopy
 **
 ** copy method for nrrds.  nout will end up as an "exact" copy of nin.
@@ -394,11 +449,18 @@ nrrdCopy (Nrrd *nout, const Nrrd *nin) {
   } else {
     /* someone is trying to copy structs without data, fine fine fine */
     nout->data = NULL;
+    /* We need to make sure to copy important stuff like type, dim,
+       and sizes, as this information is not copied elsewhere.  If we
+       did have non-NULL data, this information would be set in 
+       nrrdAlloc_nva() called by nrrdMaybeAlloc_nva() above. */
+    nout->type = nin->type;
+    nout->dim = nin->dim;
+    nrrdAxisInfoSet_nva(nout, nrrdAxisInfoSize, size);
   }
   nrrdAxisInfoCopy(nout, nin, NULL, NRRD_AXIS_INFO_NONE);
 
   /* HEY: shouldn't this be handled with nrrdPeripheralCopy() */
-  AIR_FREE(nout->content);
+  nout->content = airFree(nout->content);
   nout->content = airStrdup(nin->content);
   if (nin->content && !nout->content) {
     sprintf(err, "%s: couldn't copy content", me);
@@ -469,7 +531,7 @@ nrrdAlloc_nva (Nrrd *nrrd, int type, int dim, const int *size) {
   }
 
   nrrd->type = type;
-  AIR_FREE(nrrd->data);
+  nrrd->data = airFree(nrrd->data);
   nrrd->dim = dim;
   if (_nrrdSizeCheck(dim, size, AIR_TRUE)) {
     sprintf(err, "%s:", me);

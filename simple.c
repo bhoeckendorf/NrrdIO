@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
  
   These source files have been copied and/or modified from teem,
   Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
@@ -128,7 +128,7 @@ _nrrdContentSet_nva (Nrrd *nout, const char *func,
     sprintf(err, "%s: couln't alloc buffer!", me);
     biffAdd(NRRD, err); return 1;
   }
-  AIR_FREE(nout->content);
+  nout->content = airFree(nout->content);
 
   /* we are currently praying that this won't overflow the "buff" array */
   /* HEY: replace with vsnprintf or whatever when its available */
@@ -144,11 +144,11 @@ _nrrdContentSet_nva (Nrrd *nout, const char *func,
 			 + 1, sizeof(char));      /* '\0' */
   if (!nout->content) {
     sprintf(err, "%s: couln't alloc output content!", me);
-    biffAdd(NRRD, err); AIR_FREE(buff); return 1;
+    biffAdd(NRRD, err); buff = airFree(buff); return 1;
   }
   sprintf(nout->content, "%s(%s%s%s)", func, content,
 	  airStrlen(buff) ? "," : "", buff);
-  AIR_FREE(buff);
+  buff = airFree(buff);
   return 0;
 }
 
@@ -194,13 +194,13 @@ nrrdContentSet (Nrrd *nout, const char *func,
   }
   if (nrrdStateDisableContent) {
     /* we kill content always */
-    AIR_FREE(nout->content);
+    nout->content = airFree(nout->content);
     return 0;
   }
   if (!nin->content && !nrrdStateAlwaysSetContent) {
     /* there's no input content, and we're not supposed to invent any
        content, so after freeing nout's content we're done */
-    AIR_FREE(nout->content);
+    nout->content = airFree(nout->content);
     return 0;
   }
   /* we copy the input nrrd content first, before blowing away the
