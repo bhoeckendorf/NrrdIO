@@ -1259,6 +1259,29 @@ enum {
 };
 #define NRRD_SPACE_MAX                   12
 
+/*
+******** nrrdSpacingStatus* enum
+**
+** a way of describing how spacing information is known or not known for a 
+** given axis, as determined by nrrdSpacingCalculate
+*/
+enum {
+  nrrdSpacingStatusUnknown,           /* 0: nobody knows,
+                                         or invalid axis choice */
+  nrrdSpacingStatusNone,              /* 1: neither axis->spacing nor
+                                         axis->spaceDirection is set */
+  nrrdSpacingStatusScalarNoSpace,     /* 2: axis->spacing set,
+                                         w/out space info */
+  nrrdSpacingStatusScalarWithSpace,   /* 3: axis->spacing set, but there *is*
+                                         space info, which means the spacing
+                                         does *not* live in the surrounding
+                                         space */
+  nrrdSpacingStatusVector,            /* 4: axis->spaceDirection set, and 
+                                         measured according to surrounding
+                                         space */
+  nrrdSpacingStatusLast
+};
+
 
 #ifdef __cplusplus
 }
@@ -1753,6 +1776,9 @@ TEEM_API void nrrdAxisInfoIdxRange(double *loP, double *hiP,
                                    double loPos, double hiPos);
 TEEM_API void nrrdAxisInfoSpacingSet(Nrrd *nrrd, int ax);
 TEEM_API void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
+TEEM_API int nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
+                                  double *spacing, int *sdim,
+                                  double vector[NRRD_SPACE_DIM_MAX]);
 
 /******** simple things */
 /* simple.c */
@@ -1764,7 +1790,7 @@ TEEM_API int nrrdContentSet(Nrrd *nout, const char *func,
                             ... /* printf-style arg list */ );
 TEEM_API void nrrdDescribe(FILE *file, const Nrrd *nrrd);
 TEEM_API int nrrdCheck(const Nrrd *nrrd);
-TEEM_API int _nrrdCheck(const Nrrd *nrrd, int checkData);
+TEEM_API int _nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff);
 TEEM_API int nrrdElementSize(const Nrrd *nrrd);
 TEEM_API size_t nrrdElementNumber(const Nrrd *nrrd);
 TEEM_API int nrrdSanity(void);
