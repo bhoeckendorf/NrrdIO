@@ -49,20 +49,16 @@
 ### handling IEEE floating point special values.  This quantity is
 ### independent of endianness.
 ###
-### -DTEEM_BIGBITFIELD=0, -DTEEM_BIGBITFIELD=1: This platform can (1)
-### or cannot (0) handle bit-fields larger than 32 bits.  This is also
-### needed for doing IEEE floating point special values.
 ###
 PLATFORM_DEFS = \
   -DTEEM_DIO=0 \
   -DTEEM_32BIT=1 \
   -DTEEM_ENDIAN=4321 \
-  -DTEEM_QNANHIBIT=1 \
-  -DTEEM_BIGBITFIELD=1
+  -DTEEM_QNANHIBIT=1
 
 ### Any architecture-specific flags to cc
 ###
-CCFLAGS =
+CCFLAGS = -O2 -Wall
 
 ### This also has to be set per-architecture- whether or not we need to
 ### run ranlib on libraries created via ar
@@ -91,13 +87,13 @@ libNrrdIO.a : $(patsubst %.c,%.o,$(shell cat NrrdIO_Srcs.txt))
 ### Compiling the source files will also have some platform-specific stuff
 ###
 %.o : %.c
-	cc -O2 $(CCFLAGS) $(PLATFORM_DEFS) \
+	cc $(CCFLAGS) $(PLATFORM_DEFS) \
           -DTEEM_ZLIB=1 $(ZLIB_IPATH) -c $^ -o $@
 
 ### this creates the sampleIO program
 ###
 sampleIO : sampleIO.c
-	cc -O2 $(CCFLAGS) $(PLATFORM_DEFS) -DTEEM_ZLIB=1 $(ZLIB_IPATH) \
+	cc $(CCFLAGS) $(PLATFORM_DEFS) -DTEEM_ZLIB=1 $(ZLIB_IPATH) \
 	$^ -o $@ -L. -lNrrdIO $(ZLIB_LPATH) -lz -lm
 
 ### how to clean up
