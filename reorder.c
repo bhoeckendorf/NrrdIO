@@ -54,11 +54,11 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
     biffAdd(NRRD, err); return 1;
   }
   if (nout != nin) {
-    if (nrrdCopy(nout, nin)) {
+    if (_nrrdCopy(nout, nin, (NRRD_BASIC_INFO_COMMENTS_BIT
+                              | NRRD_BASIC_INFO_KEYVALUEPAIRS_BIT))) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); return 1;
     }
-    /* HEY: comments have been copied, perhaps that's not appropriate */
   }
   nout->dim = 1 + nin->dim;
   for (d=nin->dim-1; d>=ax; d--) {
@@ -76,7 +76,7 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  nrrdPeripheralCopy(nout, nin);
+  /* all basic info has already been copied by nrrdCopy() above */
   return 0;
 }
 
