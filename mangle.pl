@@ -26,6 +26,7 @@ print "NrrdIO distribution:\n";
 print "\n";
 print "  perl mangle.pl ${prefix} > ${prefix}_NrrdIO_mangle.h\n";
 print "\n";
+print "This uses nm to list all text (T) and data (D) symbols\n";
 print "*/\n";
 print "\n";
 open(NM, "nm libNrrdIO.a |");

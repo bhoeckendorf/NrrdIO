@@ -33,7 +33,12 @@
 ### makefile:
 ###
 ###    make -f pre-GNUmakefile clean
+###    setenv ITK_NRRDIO                             (for ITK stuff)
 ###    make -f pre-GNUmakefile
+###    unsetenv ITK_NRRDIO                           (for ITK stuff)
+###    make -f sample-GNUmakefile                    (if mangling needed)
+###    perl mangle.pl itk >! itk_NrrdIO_mangle.h     (for ITK stuff)
+###    make -f sample-GNUmakefile clean              (if mangling needed)
 ###
 ### This file is the single place where the required teem source files
 ### are listed.  Once the NrrdIO source distribution is created, this
