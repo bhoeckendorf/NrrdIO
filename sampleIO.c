@@ -81,6 +81,9 @@ int
 main(int argc, char **argv) {
   char *err;
 
+  fprintf(stderr, "(from Teem %s, %s)\n", 
+          airTeemVersion, airTeemReleaseDate);
+
   if (!nrrdSanity()) {
     fprintf(stderr, "\n");
     fprintf(stderr, "!!! nrrd sanity check FAILED: fix and re-compile\n");
