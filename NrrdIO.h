@@ -966,7 +966,7 @@ enum {
 ** node-centered vs. cell-centered
 */
 enum {
-  nrrdCenterUnknown,
+  nrrdCenterUnknown,         /* 0: no centering known for this axis */
   nrrdCenterNode,            /* 1: samples at corners of things
                                 (how "voxels" are usually imagined)
                                 |\______/|\______/|\______/|
@@ -1276,10 +1276,24 @@ enum {
                                          space info, which means the spacing
                                          does *not* live in the surrounding
                                          space */
-  nrrdSpacingStatusVector,            /* 4: axis->spaceDirection set, and 
+  nrrdSpacingStatusDirection,         /* 4: axis->spaceDirection set, and 
                                          measured according to surrounding
                                          space */
   nrrdSpacingStatusLast
+};
+
+/*
+******** nrrdOriginStatus* enum
+**
+** how origin information was or was not computed by nrrdOriginCalculate
+*/
+enum {
+  nrrdOriginStatusUnknown,        /* 0: nobody knows, or invalid parms */
+  nrrdOriginStatusDirection,      /* 1: chosen axes have spaceDirections */
+  nrrdOriginStatusNoMin,          /* 2: axis->min doesn't exist */
+  nrrdOriginStatusNoMaxOrSpacing, /* 3: axis->max or ->spacing doesn't exist */
+  nrrdOriginStatusOkay,           /* 4: all is well */
+  nrrdOriginStatusLast
 };
 
 
@@ -1777,7 +1791,7 @@ TEEM_API void nrrdAxisInfoIdxRange(double *loP, double *hiP,
 TEEM_API void nrrdAxisInfoSpacingSet(Nrrd *nrrd, int ax);
 TEEM_API void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
 TEEM_API int nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
-                                  double *spacing, int *sdim,
+                                  double *spacing,
                                   double vector[NRRD_SPACE_DIM_MAX]);
 
 /******** simple things */
@@ -1785,6 +1799,13 @@ TEEM_API int nrrdSpacingCalculate(const Nrrd *nrrd, int ax,
 TEEM_API const char *nrrdBiffKey;
 TEEM_API int nrrdSpaceDimension(int space);
 TEEM_API int nrrdSpaceSet(Nrrd *nrrd, int space);
+TEEM_API int nrrdSpaceDimensionSet(Nrrd *nrrd, int spaceDim);
+TEEM_API int nrrdSpaceKnown(const Nrrd *nrrd);
+TEEM_API void nrrdSpaceGet(const Nrrd *nrrd, int *space, int *spaceDim);
+TEEM_API void nrrdSpaceOriginGet(const Nrrd *nrrd,
+                                 double vector[NRRD_SPACE_DIM_MAX]);
+TEEM_API int nrrdOriginCalculate3D(const Nrrd *nrrd, int ax0, int ax1, int ax2,
+                                   int defaultCenter, double origin[3]);
 TEEM_API int nrrdContentSet(Nrrd *nout, const char *func,
                             const Nrrd *nin, const char *format,
                             ... /* printf-style arg list */ );
