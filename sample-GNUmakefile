@@ -53,12 +53,12 @@
 PLATFORM_DEFS = \
   -DTEEM_DIO=0 \
   -DTEEM_32BIT=1 \
-  -DTEEM_ENDIAN=4321 \
+  -DTEEM_ENDIAN=1234 \
   -DTEEM_QNANHIBIT=1
 
 ### Any architecture-specific flags to cc
 ###
-CCFLAGS = -O2 -Wall
+CCFLAGS = -O3 -ffloat-store -Wall
 
 ### This also has to be set per-architecture- whether or not we need to
 ### run ranlib on libraries created via ar
