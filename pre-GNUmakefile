@@ -43,9 +43,10 @@
 
 $(if $(TEEM_SRC_ROOT),,\
 $(warning *)\
-$(warning * Environment variable TEEM_SRC_ROOT not set.  This needs to be *)\
-$(warning * set to the directory containing the src and include directories *)\
-$(warning * of the Teem source distribution.)\
+$(warning * Environment variable TEEM_SRC_ROOT not set. This *)\
+$(warning * needs to be set to the directory containing the *)\
+$(warning * src and include directories of the Teem source *)\
+$(warning * distribution. *)\
 $(warning *)\
 $(error Make quitting))
 
