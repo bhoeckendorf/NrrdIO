@@ -263,8 +263,6 @@ TEEM_API float airNaN(void);
 TEEM_API int airIsNaN(float f);
 TEEM_API int airIsInf_f(float f);
 TEEM_API int airIsInf_d(double d);
-TEEM_API int airExists_f(float f);
-TEEM_API int airExists_d(double d);
 TEEM_API int airExists(double d);
 
 
@@ -498,51 +496,11 @@ TEEM_API void airMopDebug(airArray *arr);
 ** doubles > FLT_MAX: airExists_f would say these are infinity.
 */
 #if 1
-#define AIR_EXISTS(x) (airExists_d(x))
+#define AIR_EXISTS(x) (airExists(x))
 #else
 #define AIR_EXISTS(x) (!((x) - (x)))
 #endif
 
-/*
-******** AIR_EXISTS_F(x)
-**
-** This is another way to check for non-specialness (not NaN, not
-** +inf, not -inf) of a _float_, by making sure the exponent field
-** isn't all ones.
-**
-** Unlike !((x) - (x)) or airExists(x), the argument to this macro
-** MUST MUST MUST be a float, and the float must be of the standard
-** 32-bit size, which must also be the size of an int.  The reason for
-** this constraint is that macros are not functions, so there is no
-** implicit cast or conversion to a single type.  Casting the address
-** of the macro arg to an int* only works when the arg has the same
-** size as an int.
-**
-** No cross-platform comparitive timings have been done to compare the
-** speed of !((x) - (x)) versus airExists() versus AIR_EXISTS_F()
-** 
-** This macro is endian-safe.
-*/
-#define AIR_EXISTS_F(x) ((*(unsigned int*)&(x) & 0x7f800000) != 0x7f800000)
-
-/*
-******** AIR_EXISTS_D(x)
-**
-** like AIR_EXISTS_F(), but the argument here MUST be a double
-*/
-#define AIR_EXISTS_D(x) (                               \
-  (*(airULLong*)&(x) & AIR_ULLONG(0x7ff0000000000000))  \
-    != AIR_ULLONG(0x7ff0000000000000))
-
-/*
-******** AIR_ISNAN_F(x)
-**
-** detects if a float is NaN by looking at the bits, without relying on
-** any of its arithmetic properties.  As with AIR_EXISTS_F(), this only
-** works when the argument really is a float, and when floats are 4-bytes
-*/
-#define AIR_ISNAN_F(x) (((*(unsigned int*)&(x) & 0x7f800000)==0x7f800000) && \
-                         (*(unsigned int*)&(x) & 0x007fffff))
 
 /*
 ******** AIR_MAX(a,b), AIR_MIN(a,b), AIR_ABS(a)
