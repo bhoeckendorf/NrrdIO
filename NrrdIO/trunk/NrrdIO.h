@@ -56,7 +56,7 @@ extern "C" {
 #  pragma warning ( disable : 4723 )
 #endif
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
 typedef signed __int64 airLLong;
 typedef unsigned __int64 airULLong;
 #define AIR_LLONG_FMT "%I64d"
@@ -737,7 +737,10 @@ TEEM_API void biffDone(const char *key);
 TEEM_API void biffMove(const char *destKey, const char *err,
                        const char *srcKey);
 TEEM_API char *biffGet(const char *key);
+TEEM_API int biffGetStrlen(const char *key);
+TEEM_API void biffSetStr(char *str, const char *key);
 TEEM_API char *biffGetDone(const char *key);
+TEEM_API void biffSetStrDone(char *str, const char *key);
 
 #ifdef __cplusplus
 }
@@ -1037,27 +1040,29 @@ enum {
 */
 enum {
   nrrdAxisInfoUnknown,
-  nrrdAxisInfoSize,                 /* 1: number of samples along axis */
-#define NRRD_AXIS_INFO_SIZE_BIT    (1<<1)
-  nrrdAxisInfoSpacing,              /* 2: spacing between samples */
-#define NRRD_AXIS_INFO_SPACING_BIT (1<<2)
-  nrrdAxisInfoMin,                  /* 3: minimum pos. assoc. w/ 1st sample */
-#define NRRD_AXIS_INFO_MIN_BIT     (1<<3) 
-  nrrdAxisInfoMax,                  /* 4: maximum pos. assoc. w/ last sample */
-#define NRRD_AXIS_INFO_MAX_BIT     (1<<4)
-  nrrdAxisInfoCenter,               /* 5: cell vs. node */
-#define NRRD_AXIS_INFO_CENTER_BIT  (1<<5)
-  nrrdAxisInfoKind,                 /* 6: from the nrrdKind* enum */
-#define NRRD_AXIS_INFO_KIND_BIT    (1<<6)
-  nrrdAxisInfoLabel,                /* 7: string describing the axis */
-#define NRRD_AXIS_INFO_LABEL_BIT   (1<<7)
-  nrrdAxisInfoUnit,                 /* 8: string identifying units */
-#define NRRD_AXIS_INFO_UNIT_BIT    (1<<8)
+  nrrdAxisInfoSize,                   /* 1: number of samples along axis */
+#define NRRD_AXIS_INFO_SIZE_BIT      (1<<1)
+  nrrdAxisInfoSpacing,                /* 2: spacing between samples */
+#define NRRD_AXIS_INFO_SPACING_BIT   (1<<2)
+  nrrdAxisInfoThickness,              /* 3: thickness of sample region */
+#define NRRD_AXIS_INFO_THICKNESS_BIT (1<<3)
+  nrrdAxisInfoMin,                    /* 4: min pos. assoc. w/ 1st sample */
+#define NRRD_AXIS_INFO_MIN_BIT       (1<<4) 
+  nrrdAxisInfoMax,                    /* 5: max pos. assoc. w/ last sample */
+#define NRRD_AXIS_INFO_MAX_BIT       (1<<5)
+  nrrdAxisInfoCenter,                 /* 6: cell vs. node */
+#define NRRD_AXIS_INFO_CENTER_BIT    (1<<6)
+  nrrdAxisInfoKind,                   /* 7: from the nrrdKind* enum */
+#define NRRD_AXIS_INFO_KIND_BIT      (1<<7)
+  nrrdAxisInfoLabel,                  /* 8: string describing the axis */
+#define NRRD_AXIS_INFO_LABEL_BIT     (1<<8)
+  nrrdAxisInfoUnit,                   /* 9: string identifying units */
+#define NRRD_AXIS_INFO_UNIT_BIT      (1<<9)
   nrrdAxisInfoLast
 };
-#define NRRD_AXIS_INFO_MAX             8
+#define NRRD_AXIS_INFO_MAX               9
 #define NRRD_AXIS_INFO_ALL  \
-    ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7)|(1<<8))
+    ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7)|(1<<8)|(1<<9))
 #define NRRD_AXIS_INFO_NONE 0
 
 /*
@@ -1081,6 +1086,8 @@ enum {
 **    _nrrdFieldOnePerAxis[]
 **    _nrrdFieldValidInText[]
 **    _nrrdFieldRequired[]
+** parseNrrd.c:
+**    _nrrdReadNrrdParseInfo[]
 */
 enum {
   nrrdField_unknown,
@@ -1092,25 +1099,26 @@ enum {
   nrrdField_dimension,       /*  6 */
   nrrdField_sizes,           /*  7 */
   nrrdField_spacings,        /*  8 */
-  nrrdField_axis_mins,       /*  9 */
-  nrrdField_axis_maxs,       /* 10 */
-  nrrdField_centers,         /* 11 */
-  nrrdField_kinds,           /* 12 */
-  nrrdField_labels,          /* 13 */
-  nrrdField_units,           /* 14 */
-  nrrdField_min,             /* 15 */
-  nrrdField_max,             /* 16 */
-  nrrdField_old_min,         /* 17 */
-  nrrdField_old_max,         /* 18 */
-  nrrdField_data_file,       /* 19 */
-  nrrdField_endian,          /* 20 */
-  nrrdField_encoding,        /* 21 */
-  nrrdField_line_skip,       /* 22 */
-  nrrdField_byte_skip,       /* 23 */
-  nrrdField_keyvalue,        /* 24 */
+  nrrdField_thicknesses,     /*  9 */
+  nrrdField_axis_mins,       /* 10 */
+  nrrdField_axis_maxs,       /* 11 */
+  nrrdField_centers,         /* 12 */
+  nrrdField_kinds,           /* 13 */
+  nrrdField_labels,          /* 14 */
+  nrrdField_units,           /* 15 */
+  nrrdField_min,             /* 16 */
+  nrrdField_max,             /* 17 */
+  nrrdField_old_min,         /* 18 */
+  nrrdField_old_max,         /* 19 */
+  nrrdField_data_file,       /* 20 */
+  nrrdField_endian,          /* 21 */
+  nrrdField_encoding,        /* 22 */
+  nrrdField_line_skip,       /* 23 */
+  nrrdField_byte_skip,       /* 24 */
+  nrrdField_keyvalue,        /* 25 */
   nrrdField_last
 };
-#define NRRD_FIELD_MAX          24
+#define NRRD_FIELD_MAX          25
 
 /* 
 ******** nrrdHasNonExist* enum
@@ -1225,10 +1233,21 @@ extern "C" {
 ** position at the lowest index.  In cell-centering, the position at
 ** the lowest index is between min and max (a touch bigger than min,
 ** assuming min < max).
+**
+** There needs to be a one-to-one correspondence between these variables
+** and the nrrdAxisInfo* enum (nrrdEnums.h), the per-axis header fields
+** (see nrrdField* enum in nrrdEnums.h), and the various methods in axis.c
 */
 typedef struct {
   int size;                      /* number of elements along each axis */
   double spacing;                /* if non-NaN, distance between samples */
+  double thickness;              /* if non-NaN, nominal thickness of region
+                                    represented by one sample along the axis.
+                                    No semantics relative to spacing are 
+                                    assumed or imposed, and unlike spacing,
+                                    there is no "right" way to alter thickness-
+                                    it is either copied (with cropping) or
+                                    set to NaN (with resampling). */
   double min, max;               /* if non-NaN, range of positions spanned
                                     by the samples on this axis.  Obviously,
                                     one can set "spacing" to something
@@ -1241,7 +1260,8 @@ typedef struct {
   int kind;                      /* what kind of information is along this
                                     axis (from the nrrdKind* enum) */
   char *label;                   /* short info string for each axis */
-  char *unit;                    /* short string for identifying units */
+  char *unit;                    /* short string for identifying the units 
+                                    used for measuring spacing and thickness */
 } NrrdAxisInfo;
 
 /*
@@ -1354,11 +1374,12 @@ typedef struct NrrdEncoding_t {
 /*
 ******** NrrdIoState struct
 **
-** Everything transient relating to how the nrrd is read and written.
-** Once the nrrd has been read or written, this information is moot,
-** except that after reading, it is a potentially useful record of what
-** it took to read in a nrrd, and it is the mechanism for hacks like
-** keepNrrdDataFileOpen
+** Everything relating to how the nrrd is read and written.
+** Multiple parameters for writing are set here (like format, encoding, 
+** zlib parameters).  Also, this is the place where those few parameters
+** of reading are stored (like skipData and keepNrrdDataFileOpen).  Also,
+** after the nrrd has been read, it is a potentially useful record of what
+** it took to read it in.
 */
 typedef struct NrrdIoState_t {
   char *path,               /* allows us to remember the directory
