@@ -36,7 +36,7 @@ CCFLAGS =
 ### This also has to be set per-architecture- whether or not we need to
 ### run ranlib on libraries created via ar
 ###
-RANLIB =
+RANLIB = ranlib
 
 ### Assuming NrrdIO will be built with zlib enabled (due to "-DTEEM_ZLIB=1"
 ### on the source compilation, below), these (may) need to be set to help 
