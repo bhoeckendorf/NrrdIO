@@ -309,12 +309,12 @@ nrrdBasicInfoCopy (Nrrd *dest, const Nrrd *src, int bitflag) {
 */
 void
 nrrdInit (Nrrd *nrrd) {
-  int i;
+  int ii;
 
   if (nrrd) {
     nrrdBasicInfoInit(nrrd, NRRD_BASIC_INFO_NONE);
-    for (i=0; i<NRRD_DIM_MAX; i++) {
-      _nrrdAxisInfoInit(&(nrrd->axis[i]));
+    for (ii=0; ii<NRRD_DIM_MAX; ii++) {
+      _nrrdAxisInfoInit(nrrd->axis + ii);
     }
   }
   return;
@@ -337,12 +337,10 @@ nrrdNew (void) {
     return NULL;
 
   /* explicitly set pointers to NULL, since calloc isn't officially
-     guaranteed to do that.  Its unfortunate that the AxisInfo functions
-     don't handle this, but then again these are unique circumstances */
+     guaranteed to do that.  */
   nrrd->data = NULL;
   for (ii=0; ii<NRRD_DIM_MAX; ii++) {
-    nrrd->axis[ii].label = NULL;
-    nrrd->axis[ii].units = NULL;
+    _nrrdAxisInfoNewInit(nrrd->axis + ii);
   }
   for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
     nrrd->spaceUnits[ii] = NULL;
@@ -366,7 +364,7 @@ nrrdNew (void) {
   if (!nrrd->kvpArr) {
     return NULL;
   }
-  /* no airArray callbacks for now */
+  /* key/value airArray uses no callbacks for now */
   
   /* finish initializations */
   nrrdInit(nrrd);
@@ -543,63 +541,6 @@ _nrrdTraverse (Nrrd *nrrd) {
   }
 }
 */
-
-/*
-** _nrrdCopyShallow
-**
-** Similar to nrrdCopy, but the data itself is not copied.  nout->data
-** and nout->data will share a pointer to the data.  This should be
-** used with extreme caution, because there is no pointer magic to
-** make sure the data is not freed twice.
-**
-** HEY: I have a bad feeling there's a memory leak in here ...
-*/
-int
-_nrrdCopyShallow (Nrrd *nout, const Nrrd *nin) {
-  char me[]="_nrrdCopyShallow", err[AIR_STRLEN_MED];
-  Nrrd *ntmp;
-  airArray *mop;
-
-  if (!(nin && nout)) {
-    sprintf(err, "%s: got NULL pointer", me);
-    biffAdd(NRRD, err); return 1;
-  }
-
-  /* We're not using nrrdNew() because it allocates new airArray's for
-     comments (cmtArr) and key/value pairs (kvpArr), which we do not
-     need here, and which we don't want to have to explicitly delete */
-  ntmp = (Nrrd*)(calloc(1, sizeof(Nrrd)));
-  if (!ntmp) {
-    sprintf(err, "%s: error allocating temporary nrrd.", me);
-    biffAdd(NRRD, err); return 1;
-  }
-  /* Since we should never have copied the data, or allocated new meta-data,
-     we want to make sure that we don't delete it here. */
-  mop = airMopNew();
-  airMopAdd(mop, ntmp, airFree, airMopAlways);
-  
-  /* Shallow copy the contents of the nrrd.  It's OK if this is not a
-     deep copy (i.e. all the axis info), because nrrdCopy will do this
-     for us.  This is only to facilitate setting the data pointer to
-     NULL which will cause nrrdCopy to not copy the data. */
-  memcpy(ntmp, nin, sizeof(Nrrd));
-
-  /* Setting this to NULL will cause nrrdCopy to not copy the data */
-  ntmp->data = NULL;
-  
-  if (nrrdCopy(nout, ntmp)) {
-    sprintf(err, "%s: couldn't copy to output", me);
-    biffAdd(NRRD, err);
-    airMopError(mop);
-    return 1;
-  }
-
-  /* Share the data pointer */
-  nout->data = nin->data;
-
-  airMopOkay(mop);
-  return 0;
-}
 
 int
 _nrrdCopy (Nrrd *nout, const Nrrd *nin, int bitflag) {
