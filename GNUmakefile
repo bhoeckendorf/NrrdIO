@@ -24,19 +24,19 @@
 ###
 PLATFORM_DEFS = \
   -DTEEM_DIO=0 \
-  -DTEEM_32BIT=0 \
+  -DTEEM_32BIT=1 \
   -DTEEM_ENDIAN=4321 \
   -DTEEM_QNANHIBIT=0 \
   -DTEEM_BIGBITFIELD=1
 
 ### Any architecture-specific flags to cc
 ###
-CCFLAGS = -64
+CCFLAGS =
 
 ### This also has to be set per-architecture- whether or not we need to
 ### run ranlib on libraries created via ar
 ###
-RANLIB = 
+RANLIB =
 
 ### Assuming NrrdIO will be built with zlib enabled (due to "-DTEEM_ZLIB=1"
 ### on the source compilation, below), these (may) need to be set to help 
