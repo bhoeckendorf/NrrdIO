@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
  
   These source files have been copied and/or modified from teem,
   Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
@@ -181,6 +181,7 @@ _nrrdFieldValidInImage[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_axis_mins */
   1, /* nrrdField_axis_maxs */
   1, /* nrrdField_centers */
+  1, /* nrrdField_kinds */
   1, /* nrrdField_labels */
   1, /* nrrdField_units */
   0, /* nrrdField_min */
@@ -213,6 +214,7 @@ _nrrdFieldOnePerAxis[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_axis_mins */
   1, /* nrrdField_axis_maxs */
   1, /* nrrdField_centers */
+  1, /* nrrdField_kinds */
   1, /* nrrdField_labels */
   1, /* nrrdField_units */
   0, /* nrrdField_min */
@@ -248,6 +250,7 @@ _nrrdFieldValidInText[NRRD_FIELD_MAX+1] = {
   1, /* nrrdField_axis_mins */
   1, /* nrrdField_axis_maxs */
   1, /* nrrdField_centers */
+  1, /* nrrdField_kinds */
   1, /* nrrdField_labels */
   1, /* nrrdField_units */
   0, /* nrrdField_min */
@@ -281,6 +284,7 @@ _nrrdFieldRequired[NRRD_FIELD_MAX+1] = {
   0, /* nrrdField_axis mins */
   0, /* nrrdField_axis maxs */
   0, /* nrrdField_centers */
+  0, /* nrrdField_kinds */
   0, /* nrrdField_labels */
   0, /* nrrdField_units */
   0, /* nrrdField_min */

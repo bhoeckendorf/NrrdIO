@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
  
   These source files have been copied and/or modified from teem,
   Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
@@ -566,7 +566,7 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
     biffAdd(NRRD, err);
     return 1;
   }
-  AIR_FREE(s->msg);
+  s->msg = airFree(s->msg);
   if (s->stream.state != NULL) {
     if (s->mode == 'w') {
       error = deflateEnd(&(s->stream));
@@ -583,9 +583,9 @@ _nrrdGzDestroy(_NrrdGzStream *s) {
     sprintf(err, "%s: %s", me, _NRRD_GZ_ERR_MSG(error));
     biffAdd(NRRD, err);
   }
-  AIR_FREE(s->inbuf);
-  AIR_FREE(s->outbuf);
-  AIR_FREE(s);
+  s->inbuf = airFree(s->inbuf);
+  s->outbuf = airFree(s->outbuf);
+  s = airFree(s);
   return error != Z_OK;
 }
 

@@ -1,6 +1,6 @@
 #
 # NrrdIO: stand-alone code for basic nrrd functionality
-# Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+# Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
 #
 # These source files have been copied and/or modified from teem,
 # Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
@@ -37,24 +37,20 @@
 ###
 ### This file is the single place where the required teem source files
 ### are listed.  Once the NrrdIO source distribution is created, this
-### GNU makefile is completely moot.  TEEM_ROOT must be set in order
-### to locate the teem source.
+### GNU makefile is completely moot.  TEEM_SRC_ROOT must be set in order
+### to locate the teem source.  We use this instead of TEEM_ROOT to avoid
+### conflict with teem's own make system
 
-$(if $(TEEM_ROOT),,\
+$(if $(TEEM_SRC_ROOT),,\
 $(warning *)\
-$(warning * Environment variable TEEM_ROOT not set.)\
-$(warning *)\
-$(error Make quitting))
-
-$(if $(wildcard $(TEEM_ROOT)/src/air/*.c),,\
-$(warning *)\
-$(warning * Environment variable TEEM_ROOT=$(TEEM_ROOT) not correctly set:)\
-$(warning * Must directory containing "src", "include", etc. of teem)\
+$(warning * Environment variable TEEM_SRC_ROOT not set.  This needs to be *)\
+$(warning * set to the directory containing the src and include directories *)\
+$(warning * of the Teem source distribution.)\
 $(warning *)\
 $(error Make quitting))
 
 ### The following sources are pretty much stubs, to create the symbols, 
-### but not the functionality, of different formats and the bzip2 encoding.
+### but not the functionality of different formats and the bzip2 encoding.
 ### As such, they are NOT copied from teem but are made for NrrdIO.
 ###
 NEED_NOT = encodingBzip2.c formatEPS.c formatPNG.c formatPNM.c \
@@ -74,29 +70,31 @@ NEED_AIR = $(addprefix air/, \
   sane.c endianAir.c string.c enum.c miscAir.c)
 NEED_BIFF = biff/biffbiff.c
 NEED_NRRD = $(addprefix nrrd/, \
-  privateNrrd.h \
   accessors.c defaultsNrrd.c enumsNrrd.c arraysNrrd.c methodsNrrd.c \
   reorder.c axis.c simple.c comment.c keyvalue.c endianNrrd.c \
   parseNrrd.c gzio.c read.c write.c format.c formatNRRD.c \
   encoding.c encodingRaw.c encodingAscii.c encodingHex.c encodingGzip.c)
 NEED_SRCS = $(NEED_AIR) $(NEED_BIFF) $(NEED_NRRD)
-NEED_HDRS = air/air.h biff/biff.h \
+NEED_PUB_HDRS = air/air.h biff/biff.h \
   $(addprefix nrrd/, nrrdDefines.h nrrdEnums.h nrrdMacros.h nrrd.h)
+NEED_PRIV_HDRS = air/privateAir.h nrrd/privateNrrd.h
 
 ### Building NrrdIO requires the teem*.h headers, and the processed sources
 ### from air, biff, and nrrd
 ###
 .PHONY: all
-all: $(TEEM_HDRS) $(NEED_SRCS) NrrdIO.h NrrdIO_Srcs.txt
+all: $(TEEM_HDRS) $(NEED_SRCS) $(NEED_PRIV_HDRS) NrrdIO.h NrrdIO_Srcs.txt
 
 ### NrrdIO.h is basically the result of cat'ing together all the 
-### teem headers in $(NEED_HDRS), but we do need to unteem.
+### teem headers in $(NEED_HDRS), but we do need to "unteem" them.
 ###
-$(NEED_HDRS):
-	tail +19 $(TEEM_ROOT)/src/$@ | perl unteem.pl > $(notdir $@)
-NrrdIO.h: $(NEED_HDRS)
-	cat preamble.c $(notdir $(NEED_HDRS)) > NrrdIO.h
-	rm -f $(notdir $(NEED_HDRS))
+$(NEED_PUB_HDRS) $(NEED_PRIV_HDRS):
+	tail +19 $(TEEM_SRC_ROOT)/src/$@ \
+         | perl unteem.pl \
+         | grep -v HAS_BEEN_INCLUDED > $(notdir $@)
+NrrdIO.h: $(NEED_PUB_HDRS)
+	cat preamble.c $(notdir $(NEED_PUB_HDRS)) > NrrdIO.h
+	rm -f $(notdir $(NEED_PUB_HDRS))
 
 ### NrrdIO_Srcs.txt is a list of all the source files that must be
 ### compiled together to create libNrrdIO
@@ -107,7 +105,7 @@ NrrdIO_Srcs.txt:
 ### The teem*.h headers: we need only change the pre-amble here
 ###
 teem/%.h: 
-	tail +19 $(TEEM_ROOT)/include/$(notdir $@) \
+	tail +19 $(TEEM_SRC_ROOT)/include/$(notdir $@) \
           | cat preamble.c - > $(notdir $@)
 
 ### The rest: by design, these targets have the library names as part
@@ -115,13 +113,15 @@ teem/%.h:
 ### source file without any VPATH games
 ###
 %.h %.c:
-	tail +19 $(TEEM_ROOT)/src/$@ \
+	tail +19 $(TEEM_SRC_ROOT)/src/$@ \
           | cat preamble.c - \
-          | perl unteem.pl > $(notdir $@)
+          | perl unteem.pl \
+          | grep -v HAS_BEEN_INCLUDED > $(notdir $@)
 
 ### To start from scratch
 ###
 clean:
-	rm -f $(notdir $(TEEM_HDRS) $(NEED_SRCS)) NrrdIO.h NrrdIO_srcs.txt
-
-
+	rm -f $(notdir $(TEEM_HDRS) $(NEED_SRCS) \
+                       $(NEED_PUB_HDRS) $(NEED_PRIV_HDRS)) \
+              NrrdIO.h NrrdIO_srcs.txt \
+              *.o libNrrdIO.a sampleIO

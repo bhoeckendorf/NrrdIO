@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
  
   These source files have been copied and/or modified from teem,
   Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
@@ -34,6 +34,7 @@
 #define MAGIC0 "NRRD00.01"
 #define MAGIC1 "NRRD0001"
 #define MAGIC2 "NRRD0002"
+#define MAGIC3 "NRRD0003"
 
 int
 _nrrdFormatNRRD_available(void) {
@@ -70,6 +71,7 @@ _nrrdFormatNRRD_contentStartsLike(NrrdIoState *nio) {
   return (!strcmp(MAGIC0, nio->line)
 	  || !strcmp(MAGIC1, nio->line)
 	  || !strcmp(MAGIC2, nio->line)
+	  || !strcmp(MAGIC3, nio->line)
 	  );
 }
 
@@ -295,7 +297,7 @@ _nrrdFormatNRRD_read(FILE *file, Nrrd *nrrd, NrrdIoState *nio) {
     */
   } else {
     if (nio->detachedHeader) {
-      AIR_FCLOSE(nio->dataFile);
+      nio->dataFile = airFclose(nio->dataFile);
       /* fprintf(stderr, "!%s: nio->dataFile = %p\n", me, nio->dataFile); */
     } else {
       /* we set nio->dataFile to "file" above; set it back; but don't
@@ -340,10 +342,14 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       sprintf(trueDataFN, "%s/%s", nio->path, tmp);
     }
   }
-
-  /* currently, which magic we use depends only on whether there are
-     key/value pairs */
-  fprintf(file, "%s\n", nrrdKeyValueSize(nrrd) ? MAGIC2 : MAGIC1);
+  
+  /* we try to use the oldest format that will old the nrrd */
+  fprintf(file, "%s\n", 
+	  (_nrrdFieldInteresting(nrrd, nio, nrrdField_kinds)
+	   ? MAGIC3
+	   : (nrrdKeyValueSize(nrrd) 
+	      ? MAGIC2 
+	      : MAGIC1)));
 
   /* this is where the majority of the header printing happens */
   for (i=1; i<=NRRD_FIELD_MAX; i++) {
@@ -390,7 +396,7 @@ _nrrdFormatNRRD_write(FILE *file, const Nrrd *nrrd, NrrdIoState *nio) {
       fprintf(stderr, "done)\n");
     }
     if (nio->detachedHeader) {
-      AIR_FCLOSE(nio->dataFile);
+      nio->dataFile = airFclose(nio->dataFile);
     } else {
       nio->dataFile = NULL;
     }

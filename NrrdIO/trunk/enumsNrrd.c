@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
  
   These source files have been copied and/or modified from teem,
   Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
@@ -280,44 +280,138 @@ _nrrdCenter_enum = {
 airEnum *
 nrrdCenter = &_nrrdCenter_enum;
 
-/* ------------------------ nrrdAxisInfo ------------------------- */
+/* ------------------------ nrrdKind ------------------------- */
+
+/*
+  nrrdKindDomain,              1: "Yes, you can resample me" 
+  nrrdKindList,                2: "No, it is goofy to resample me" 
+  nrrdKindStub,                3: axis with one sample (a placeholder) 
+  nrrdKindScalar,              4: effectively, same as a stub 
+  nrrdKindComplex,             5: real and imaginary components 
+  nrrdKind2Vector,             6: 2 component vector 
+  nrrdKind3Color,              7: ANY 3-component color value 
+  nrrdKind4Color,              8: ANY 4-component color value 
+  nrrdKind3Vector,             9: 3 component vector 
+  nrrdKind3Normal,            10: 3 component vector, assumed normalized 
+  nrrdKind4Vector,            11: 4 component vector 
+  nrrdKind2DSymTensor,        12: Txx Txy Tyy 
+  nrrdKind2DMaskedSymTensor,  13: mask Txx Txy Tyy 
+  nrrdKind2DTensor,           14: Txx Txy Tyx Tyy 
+  nrrdKind2DMaskedTensor,     15: mask Txx Txy Tyx Tyy 
+  nrrdKind3DSymTensor,        16: Txx Txy Txz Tyy Tyz Tzz 
+  nrrdKind3DMaskedSymTensor,  17: mask Txx Txy Txz Tyy Tyz Tzz 
+  nrrdKind3DTensor,           18: Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz 
+  nrrdKind3DMaskedTensor,     19: mask Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz 
+*/
 
 char
-_nrrdAxisInfoStr[NRRD_AXIS_INFO_MAX+1][AIR_STRLEN_SMALL] = {
-  "(unknown_axis_info)",
-  "size",
-  "spacing",
-  "min",
-  "max",
-  "center",
-  "label",
-  "unit"
+_nrrdKindStr[NRRD_KIND_MAX+1][AIR_STRLEN_SMALL] = {
+  "(unknown_kind)",
+  "domain",
+  "list",
+  "stub",
+  "scalar",
+  "complex",
+  "2-vector",
+  "3-color",
+  "4-color",
+  "3-vector",
+  "3-normal",
+  "4-vector",
+  "2D-symmetric-tensor",
+  "2D-masked-symmetric-tensor",
+  "2D-tensor",
+  "2D-masked-tensor",
+  "3D-symmetric-tensor",
+  "3D-masked-symmetric-tensor",
+  "3D-tensor",
+  "3D-masked-tensor"
 };
 
 char
-_nrrdAxisInfoDesc[NRRD_AXIS_INFO_MAX+1][AIR_STRLEN_MED] = {
-  "unknown axis info",
-  "number of samples along axis",
-  "spacing between samples",
-  "minimum position in \"world\" space associated with axis",
-  "maximum position in \"world\" space associated with axis",
-  "centering style for samples along this axis",
-  "short description of space or value spanned by axis",
-  "units in which sample spacing is measured"
+_nrrdKindDesc[NRRD_KIND_MAX+1][AIR_STRLEN_MED] = {
+  "unknown kind",
+  "a domain variable of the function which the nrrd samples",
+  "some list of attributes; it makes no sense to resample along these",
+  "a place-holder axis with a single sample",
+  "axis used to indicate that the nrrd contains a scalar value",
+  "real and imaginary parts of a value",
+  "a 2-component vector",
+  "any 3-component color value",
+  "any 4-component color value",
+  "a 3-element vector",
+  "a 3-element vector which is assumed normalized",
+  "a 4-element vector",
+  "3 elements of 2D symmetric tensor: Txx Txy Tyy",
+  "mask plus 3 elements of 2D symmetric tensor: mask Txx Txy Tyy",
+  "4 elements of general 2D tensor: Txx Txy Tyx Tyy",
+  "mask plus 4 elements of general 2D tensor: mask Txx Txy Tyx Tyy",
+  "6 elements of 3D symmetric tensor: Txx Txy Txz Tyy Tyz Tzz",
+  "mask plus 6 elements of 3D symmetric tensor: mask Txx Txy Txz Tyy Tyz Tzz",
+  "9 elements of general 3D tensor: Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz",
+  "mask plus 9 elements of general 3D tensor: mask Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz"
+};
+
+char
+_nrrdKindStr_Eqv[][AIR_STRLEN_SMALL] = {
+  "domain",
+  "list",
+  "stub",
+  "scalar",
+  "complex",
+  "2-vector", "2vector",
+  "3-color", "3color",
+  "4-color", "4color",
+  "3-vector", "3vector",
+  "3-normal", "3normal",
+  "4-vector", "4vector",
+  "2D-sym-tensor", "2Dsymtensor",
+  "2D-mask-sym-tensor", "2Dmasksymtensor",
+  "2D-tensor", "2Dtensor",
+  "2D-mask-tensor", "2Dmasktensor",
+  "3D-sym-tensor", "3Dsymtensor", "6-tensor",
+  "3D-mask-sym-tensor", "3Dmasksymtensor", "7-tensor",
+  "3D-tensor", "3Dtensor", "9-tensor",
+  "3D-mask-tensor", "3Dmasktensor",
+  ""
+};
+
+int
+_nrrdKindVal_Eqv[] = {
+  nrrdKindDomain,
+  nrrdKindList,
+  nrrdKindStub,
+  nrrdKindScalar,
+  nrrdKindComplex,
+  nrrdKind2Vector,
+  nrrdKind3Color, nrrdKind3Color,
+  nrrdKind4Color, nrrdKind4Color,
+  nrrdKind3Vector, nrrdKind3Vector,
+  nrrdKind3Normal, nrrdKind3Normal,
+  nrrdKind4Vector, nrrdKind4Vector,
+  nrrdKind2DSymTensor, nrrdKind2DSymTensor,
+  nrrdKind2DMaskedSymTensor, nrrdKind2DMaskedSymTensor,
+  nrrdKind2DTensor, nrrdKind2DTensor,
+  nrrdKind2DMaskedTensor, nrrdKind2DMaskedTensor,
+  nrrdKind3DSymTensor, nrrdKind3DSymTensor, nrrdKind3DSymTensor,
+  nrrdKind3DMaskedSymTensor, nrrdKind3DMaskedSymTensor,
+             nrrdKind3DMaskedSymTensor,
+  nrrdKind3DTensor, nrrdKind3DTensor, nrrdKind3DTensor,
+  nrrdKind3DMaskedTensor, nrrdKind3DMaskedTensor
 };
 
 airEnum
-_nrrdAxisInfo = {
-  "axis_info",
-  NRRD_AXIS_INFO_MAX,
-  _nrrdAxisInfoStr, NULL,
-  _nrrdAxisInfoDesc,
-  NULL, NULL,
-  AIR_TRUE
+_nrrdKind_enum = {
+  "kind",
+  NRRD_KIND_MAX,
+  _nrrdKindStr, NULL,
+  _nrrdKindDesc,
+  _nrrdKindStr_Eqv, _nrrdKindVal_Eqv,
+  AIR_FALSE
 };
 airEnum *
-nrrdAxisInfo = &_nrrdAxisInfo;
-  
+nrrdKind = &_nrrdKind_enum;
+
 /* ------------------------ nrrdField ------------------------- */
 
 char
@@ -334,6 +428,7 @@ _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL] = {
   "axis mins",
   "axis maxs",
   "centers",
+  "kinds",
   "labels",
   "units",
   "min",
@@ -362,6 +457,7 @@ _nrrdFieldDesc[NRRD_FIELD_MAX+1][AIR_STRLEN_MED] = {
   "list of minimum positions associated with each axis",
   "list of maximum positions associated with each axis",
   "list of sample centerings for each axis",
+  "list of kinds for each axis",
   "list of short descriptions for each axis",
   "list of units in which each axes' spacing is measured",
   "supposed minimum array value",
@@ -389,6 +485,7 @@ _nrrdFieldStrEqv[][AIR_STRLEN_SMALL]  = {
   "axis mins", "axismins",
   "axis maxs", "axismaxs",
   "centers",
+  "kinds",
   "labels",
   "units",
   "min",
@@ -417,6 +514,7 @@ _nrrdFieldValEqv[] = {
   nrrdField_axis_mins, nrrdField_axis_mins,
   nrrdField_axis_maxs, nrrdField_axis_maxs,
   nrrdField_centers,
+  nrrdField_kinds,
   nrrdField_labels,
   nrrdField_units,
   nrrdField_min,

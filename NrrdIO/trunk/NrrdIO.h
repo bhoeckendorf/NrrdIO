@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
+  Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998 University of Utah
  
   These source files have been copied and/or modified from teem,
   Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
@@ -28,8 +28,6 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef AIR_HAS_BEEN_INCLUDED
-#define AIR_HAS_BEEN_INCLUDED
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,13 +58,6 @@ extern "C" {
 #  pragma warning ( disable : 4305 )
 #  pragma warning ( disable : 4309 )
 #  pragma warning ( disable : 4273 )
-/* add essential math definitions */
-#  ifndef M_PI
-#    define M_PI 3.14159265358979323846
-#  endif
-#  ifndef M_E
-#    define M_E  2.71828182845904523536
-#  endif
 #endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -84,6 +75,10 @@ typedef unsigned long long airULLong;
 #define AIR_LLONG(x) x##ll
 #define AIR_ULLONG(x) x##ull
 #endif
+
+/* This is annoying, thanks to windows */
+#define AIR_PI 3.14159265358979323846
+#define AIR_E  2.71828182845904523536
 
 #define AIR_STRLEN_SMALL (128+1)
 #define AIR_STRLEN_MED   (256+1)
@@ -259,6 +254,7 @@ TEEM_API int airIsInf_f(float f);
 TEEM_API int airIsInf_d(double d);
 TEEM_API int airExists_f(float f);
 TEEM_API int airExists_d(double d);
+
 
 /*
 ******** airType
@@ -557,15 +553,6 @@ TEEM_API void airMopDebug(airArray *arr);
                              : 0))
 
 /*
-******** AIR_FREE, AIR_FCLOSE
-**
-** just to help you set all pointers to free'd data and fclose'd files to NULL
-*/
-#define AIR_FREE(x) (x) = airFree((x))
-#define AIR_FCLOSE(f) (f) = airFclose((f))
-
-
-/*
 ******** AIR_IN_OP(a,b,c), AIR_IN_CL(a,b,c)
 **
 ** is true if the middle argument is in the open/closed interval
@@ -735,10 +722,7 @@ TEEM_API void airMopDebug(airArray *arr);
 }
 #endif
 
-#endif /* AIR_HAS_BEEN_INCLUDED */
 
-#ifndef BIFF_HAS_BEEN_INCLUDED
-#define BIFF_HAS_BEEN_INCLUDED
 
 
 
@@ -763,10 +747,7 @@ TEEM_API char *biffGetDone(const char *key);
 }
 #endif
 
-#endif /* BIFF_HAS_BEEN_INCLUDED */
 
-#ifndef NRRD_DEFINES_HAS_BEEN_INCLUDED
-#define NRRD_DEFINES_HAS_BEEN_INCLUDED
 
 #include <limits.h>
 
@@ -866,10 +847,7 @@ extern "C" {
 }
 #endif
 
-#endif /* NRRD_DEFINES_HAS_BEEN_INCLUDED */
 
-#ifndef NRRD_ENUMS_HAS_BEEN_INCLUDED
-#define NRRD_ENUMS_HAS_BEEN_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -910,8 +888,8 @@ enum {
 */
 enum {
   nrrdFormatTypeUnknown,
-  nrrdFormatTypeNRRD,   /* 1: basic nrrd format (associated with both
-			   magic nrrdMagicOldNRRD and nrrdMagicNRRD0001 */
+  nrrdFormatTypeNRRD,   /* 1: basic nrrd format (associated with any of
+                           the magics starting with "NRRD") */
   nrrdFormatTypePNM,    /* 2: PNM image */
   nrrdFormatTypePNG,    /* 3: PNG image */
   nrrdFormatTypeVTK,    /* 4: VTK Structured Points datasets (v1.0 and 2.0) */
@@ -1023,6 +1001,40 @@ enum {
 #define NRRD_CENTER_MAX         2
 
 /*
+******** nrrdKind enum
+**
+** The very cautious (and last?) step nrrd takes towards sementics.
+**
+** More of these may be added in the future, as when nrrd supports bricking.
+**
+** NB: The nrrdKindSize() function returns the suggested length for these.
+*/
+enum {
+  nrrdKindUnknown,
+  nrrdKindDomain,            /*  1: "Yes, you can resample me" */
+  nrrdKindList,              /*  2: "No, it is goofy to resample me" */
+  nrrdKindStub,              /*  3: axis with one sample (a placeholder) */
+  nrrdKindScalar,            /*  4: effectively, same as a stub */
+  nrrdKindComplex,           /*  5: real and imaginary components */
+  nrrdKind2Vector,           /*  6: 2 component vector */
+  nrrdKind3Color,            /*  7: ANY 3-component color value */
+  nrrdKind4Color,            /*  8: ANY 4-component color value */
+  nrrdKind3Vector,           /*  9: 3 component vector */
+  nrrdKind3Normal,           /* 10: 3 component vector, assumed normalized */
+  nrrdKind4Vector,           /* 11: 4 component vector */
+  nrrdKind2DSymTensor,       /* 12: Txx Txy Tyy */
+  nrrdKind2DMaskedSymTensor, /* 13: mask Txx Txy Tyy */
+  nrrdKind2DTensor,          /* 14: Txx Txy Tyx Tyy */
+  nrrdKind2DMaskedTensor,    /* 15: mask Txx Txy Tyx Tyy */
+  nrrdKind3DSymTensor,       /* 16: Txx Txy Txz Tyy Tyz Tzz */
+  nrrdKind3DMaskedSymTensor, /* 17: mask Txx Txy Txz Tyy Tyz Tzz */
+  nrrdKind3DTensor,          /* 18: Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz */
+  nrrdKind3DMaskedTensor,    /* 19: mask Txx Txy Txz Tyx Tyy Tyz Tzx Tzy Tzz */
+  nrrdKindLast
+};
+#define NRRD_KIND_MAX           19
+
+/*
 ******** nrrdAxisInfo enum
 **
 ** the different pieces of per-axis information recorded in a nrrd
@@ -1039,14 +1051,17 @@ enum {
 #define NRRD_AXIS_INFO_MAX_BIT     (1<<4)
   nrrdAxisInfoCenter,               /* 5: cell vs. node */
 #define NRRD_AXIS_INFO_CENTER_BIT  (1<<5)
-  nrrdAxisInfoLabel,                /* 6: string describing the axis */
-#define NRRD_AXIS_INFO_LABEL_BIT   (1<<6)
-  nrrdAxisInfoUnit,                 /* 7: string identifying units */
-#define NRRD_AXIS_INFO_UNIT_BIT    (1<<7)
+  nrrdAxisInfoKind,                 /* 6: from the nrrdKind* enum */
+#define NRRD_AXIS_INFO_KIND_BIT    (1<<6)
+  nrrdAxisInfoLabel,                /* 7: string describing the axis */
+#define NRRD_AXIS_INFO_LABEL_BIT   (1<<7)
+  nrrdAxisInfoUnit,                 /* 8: string identifying units */
+#define NRRD_AXIS_INFO_UNIT_BIT    (1<<8)
   nrrdAxisInfoLast
 };
-#define NRRD_AXIS_INFO_MAX             7
-#define NRRD_AXIS_INFO_ALL  ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7))
+#define NRRD_AXIS_INFO_MAX             8
+#define NRRD_AXIS_INFO_ALL  \
+    ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7)|(1<<8))
 #define NRRD_AXIS_INFO_NONE 0
 
 /*
@@ -1063,6 +1078,13 @@ enum {
 ******** nrrdField enum
 **
 ** the various fields we can parse in a NRRD header
+**
+** other things which must be kept in sync:
+** arraysNrrd.c: 
+**    _nrrdFieldValidInImage[]
+**    _nrrdFieldOnePerAxis[]
+**    _nrrdFieldValidInText[]
+**    _nrrdFieldRequired[]
 */
 enum {
   nrrdField_unknown,
@@ -1077,21 +1099,22 @@ enum {
   nrrdField_axis_mins,       /*  9 */
   nrrdField_axis_maxs,       /* 10 */
   nrrdField_centers,         /* 11 */
-  nrrdField_labels,          /* 12 */
-  nrrdField_units,           /* 13 */
-  nrrdField_min,             /* 14 */
-  nrrdField_max,             /* 15 */
-  nrrdField_old_min,         /* 16 */
-  nrrdField_old_max,         /* 17 */
-  nrrdField_data_file,       /* 18 */
-  nrrdField_endian,          /* 19 */
-  nrrdField_encoding,        /* 20 */
-  nrrdField_line_skip,       /* 21 */
-  nrrdField_byte_skip,       /* 22 */
-  nrrdField_keyvalue,        /* 23 */
+  nrrdField_kinds,           /* 12 */
+  nrrdField_labels,          /* 13 */
+  nrrdField_units,           /* 14 */
+  nrrdField_min,             /* 15 */
+  nrrdField_max,             /* 16 */
+  nrrdField_old_min,         /* 17 */
+  nrrdField_old_max,         /* 18 */
+  nrrdField_data_file,       /* 19 */
+  nrrdField_endian,          /* 20 */
+  nrrdField_encoding,        /* 21 */
+  nrrdField_line_skip,       /* 22 */
+  nrrdField_byte_skip,       /* 23 */
+  nrrdField_keyvalue,        /* 24 */
   nrrdField_last
 };
-#define NRRD_FIELD_MAX          23
+#define NRRD_FIELD_MAX          24
 
 /* 
 ******** nrrdHasNonExist* enum
@@ -1119,10 +1142,7 @@ enum {
 }
 #endif
 
-#endif /* NRRD_ENUMS_HAS_BEEN_INCLUDED */
 
-#ifndef NRRD_MACROS_HAS_BEEN_INCLUDED
-#define NRRD_MACROS_HAS_BEEN_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -1186,10 +1206,7 @@ extern "C" {
 }
 #endif
 
-#endif /* NRRD_MACROS_HAS_BEEN_INCLUDED */
 
-#ifndef NRRD_HAS_BEEN_INCLUDED
-#define NRRD_HAS_BEEN_INCLUDED
 
 #include <errno.h>
 
@@ -1223,10 +1240,13 @@ typedef struct {
 				    is that only one (min and max, or
 				    spacing) should be taken to be significant
 				    at any time. */
-  int center;                    /* cell vs. node centering */
+  int center;                    /* cell vs. node centering (value should be
+				    one of nrrdCenter{Unknown,Node,Cell} */
+  int kind;                      /* what kind of information is along this
+				    axis (from the nrrdKind* enum) */
   char *label;                   /* short info string for each axis */
   char *unit;                    /* short string for identifying units */
-} NrrdAxis;
+} NrrdAxisInfo;
 
 /*
 ******** Nrrd struct
@@ -1239,31 +1259,31 @@ typedef struct {
   ** generally set at the same time that either the nrrd is created,
   ** or at the time that the nrrd is wrapped around an existing array 
   */
-  void *data;                    /* the data in memory */
-  int type;                      /* a value from the nrrdType enum */
-  int dim;                       /* what is dimension of data */
+  void *data;                      /* the data in memory */
+  int type;                        /* a value from the nrrdType enum */
+  int dim;                         /* what is dimension of data */
 
   /* 
   ** All per-axis specific information
   */
-  NrrdAxis axis[NRRD_DIM_MAX];   /* axis[0] is the fastest axis in the scan-
-				    line ordering, the one who's coordinates
-				    change the fastest as the elements are
-				    accessed in the order in which they appear
-				    in memory */
+  NrrdAxisInfo axis[NRRD_DIM_MAX]; /* axis[0] is the fastest axis in the scan-
+				      line ordering, the one who's coordinates
+				      change the fastest as the elements are
+				      accessed in the order in which they
+				      appear in memory */
 
   /* 
   ** Information of dubious standing- descriptive of whole array, but
   ** not necessary (meaningful only for some uses of a nrrd), but basic
   ** enough to be part of the basic nrrd type
   */
-  char *content;                 /* briefly, just what the hell is this data */
-  int blockSize;                 /* for nrrdTypeBlock array, block byte size */
-  double oldMin, oldMax;         /* if non-NaN, and if nrrd is of integral
-				    type, extremal values for the array
-				    BEFORE it was quantized */
-  void *ptr;                     /* never read or set by nrrd; use/abuse
-				    as you see fit */
+  char *content;                   /* brief account of what this data is */
+  int blockSize;                   /* for nrrdTypeBlock:, block byte size */
+  double oldMin, oldMax;           /* if non-NaN, and if nrrd is of integral
+				      type, extremal values for the array
+				      BEFORE it was quantized */
+  void *ptr;                       /* never read or set by nrrd; use/abuse
+				      as you see fit */
 
   /* 
   ** Comments.  Read from, and written to, header.
@@ -1449,6 +1469,7 @@ TEEM_API int nrrdStateDisableContent;
 TEEM_API char *nrrdStateUnknownContent;
 TEEM_API int nrrdStateGrayscaleImage3D;
 TEEM_API int nrrdStateKeyValueReturnInternalPointers;
+TEEM_API int nrrdStateKindNoop;
 
 /******** all the airEnums used through-out nrrd */
 /* (the actual C enums are in nrrdEnums.h) */
@@ -1457,7 +1478,7 @@ TEEM_API airEnum *nrrdFormatType;
 TEEM_API airEnum *nrrdType;
 TEEM_API airEnum *nrrdEncodingType;
 TEEM_API airEnum *nrrdCenter;
-TEEM_API airEnum *nrrdAxisInfo;
+TEEM_API airEnum *nrrdKind;
 TEEM_API airEnum *nrrdField;
 
 /******** arrays of things (poor-man's functions/predicates) */
@@ -1497,6 +1518,7 @@ TEEM_API int nrrdPGM(Nrrd *, int sx, int sy);
 
 /******** axis info related */
 /* axis.c */
+TEEM_API int nrrdKindSize(int kind);
 TEEM_API int nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin,
 			      const int *axmap, int bitflag);
 TEEM_API void nrrdAxisInfoSet_nva(Nrrd *nin, int axInfo, const void *info);
@@ -1505,16 +1527,16 @@ TEEM_API void nrrdAxisInfoSet(Nrrd *nin, int axInfo,
 TEEM_API void nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *info);
 TEEM_API void nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo,
 			      ... /* void* */);
-TEEM_API double nrrdAxisPos(const Nrrd *nrrd, int ax, double idx);
-TEEM_API double nrrdAxisIdx(const Nrrd *nrrd, int ax, double pos);
-TEEM_API void nrrdAxisPosRange(double *loP, double *hiP,
-			       const Nrrd *nrrd, int ax,
-			       double loIdx, double hiIdx);
-TEEM_API void nrrdAxisIdxRange(double *loP, double *hiP,
-			       const Nrrd *nrrd, int ax,
-			       double loPos, double hiPos);
-TEEM_API void nrrdAxisSpacingSet(Nrrd *nrrd, int ax);
-TEEM_API void nrrdAxisMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
+TEEM_API double nrrdAxisInfoPos(const Nrrd *nrrd, int ax, double idx);
+TEEM_API double nrrdAxisInfoIdx(const Nrrd *nrrd, int ax, double pos);
+TEEM_API void nrrdAxisInfoPosRange(double *loP, double *hiP,
+				   const Nrrd *nrrd, int ax,
+				   double loIdx, double hiIdx);
+TEEM_API void nrrdAxisInfoIdxRange(double *loP, double *hiP,
+				   const Nrrd *nrrd, int ax,
+				   double loPos, double hiPos);
+TEEM_API void nrrdAxisInfoSpacingSet(Nrrd *nrrd, int ax);
+TEEM_API void nrrdAxisInfoMinMaxSet(Nrrd *nrrd, int ax, int defCenter);
 
 /******** simple things */
 /* simple.c */
@@ -1582,13 +1604,13 @@ TEEM_API int nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *io);
 TEEM_API int nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *io);
 /* write.c */
 TEEM_API int nrrdIoStateSet(NrrdIoState *io, int parm, int value);
-TEEM_API int nrrdIoStateSetEncoding(NrrdIoState *io,
+TEEM_API int nrrdIoStateEncodingSet(NrrdIoState *io,
 				    const NrrdEncoding *encoding);
-TEEM_API int nrrdIoStateSetFormat(NrrdIoState *io, 
+TEEM_API int nrrdIoStateFormatSet(NrrdIoState *io, 
 				  const NrrdFormat *format);
 TEEM_API int nrrdIoStateGet(NrrdIoState *io, int parm);
-TEEM_API const NrrdEncoding *nrrdIoStateGetEncoding(NrrdIoState *io);
-TEEM_API const NrrdFormat *nrrdIoStateBetFormat(NrrdIoState *io);
+TEEM_API const NrrdEncoding *nrrdIoStateEncodingGet(NrrdIoState *io);
+TEEM_API const NrrdFormat *nrrdIoStateFormatGet(NrrdIoState *io);
 TEEM_API int nrrdSave(const char *filename, const Nrrd *nrrd, NrrdIoState *io);
 TEEM_API int nrrdWrite(FILE *file, const Nrrd *nrrd, NrrdIoState *io);
 
@@ -1618,4 +1640,3 @@ TEEM_API int nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax);
 }
 #endif
 
-#endif /* NRRD_HAS_BEEN_INCLUDED */
