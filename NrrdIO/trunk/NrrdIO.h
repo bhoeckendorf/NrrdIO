@@ -1092,7 +1092,7 @@ enum {
 #define NRRD_BASIC_INFO_SPACEDIMENSION_BIT (1<< 8)
   nrrdBasicInfoSpaceUnits,                  /*  9 */
 #define NRRD_BASIC_INFO_SPACEUNITS_BIT     (1<< 9)
-  nrrdBasicInfoOrigin,                      /* 10 */
+  nrrdBasicInfoSpaceOrigin,                 /* 10 */
 #define NRRD_BASIC_INFO_SPACEORIGIN_BIT    (1<<10)
   nrrdBasicInfoOldMin,                      /* 11 */
 #define NRRD_BASIC_INFO_OLDMIN_BIT         (1<<11)
@@ -1108,6 +1108,10 @@ enum {
 #define NRRD_BASIC_INFO_ALL  \
     ((1<<1)|(1<<2)|(1<<3)|(1<<4)|(1<<5)|(1<<6)|(1<<7)|(1<<8)|(1<<9)|(1<<10)\
      |(1<<11)|(1<<12)|(1<<13)|(1<<14))
+#define NRRD_BASIC_INFO_SPACE (NRRD_BASIC_INFO_SPACE_BIT \
+                               | NRRD_BASIC_INFO_SPACEDIMENSION_BIT \
+                               | NRRD_BASIC_INFO_SPACEUNITS_BIT \
+                               | NRRD_BASIC_INFO_SPACEORIGIN_BIT)
 #define NRRD_BASIC_INFO_NONE 0
 
 /*
@@ -1778,7 +1782,7 @@ TEEM_API int nrrdKeyValueSize(const Nrrd *nrrd);
 TEEM_API int nrrdKeyValueAdd(Nrrd *nrrd, const char *key, const char *value);
 TEEM_API char *nrrdKeyValueGet(const Nrrd *nrrd, const char *key);
 TEEM_API void nrrdKeyValueIndex(const Nrrd *nrrd, 
-                              char **keyP, char **valueP, int ki);
+                                char **keyP, char **valueP, int ki);
 TEEM_API int nrrdKeyValueErase(Nrrd *nrrd, const char *key);
 TEEM_API void nrrdKeyValueClear(Nrrd *nrrd);
 TEEM_API int nrrdKeyValueCopy(Nrrd *nout, const Nrrd *nin);

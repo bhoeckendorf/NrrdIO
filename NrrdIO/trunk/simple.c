@@ -340,17 +340,33 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
               me, airEnumStr(nrrdSpace, nrrd->space), nrrd->spaceDim);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
+    /* -------- */
     exists = AIR_FALSE;
     for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
       exists |= airStrlen(nrrd->spaceUnits[dd]);
+    }
+    if (exists) {
+      sprintf(err, "%s: spaceDim is 0, but space units is set", me);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+    /* -------- */
+    exists = AIR_FALSE;
+    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
       exists |= AIR_EXISTS(nrrd->spaceOrigin[dd]);
+    }
+    if (exists) {
+      sprintf(err, "%s: spaceDim is 0, but space origin is set", me);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+    /* -------- */
+    exists = AIR_FALSE;
+    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
       for (ii=0; ii<NRRD_DIM_MAX; ii++) {
         exists |= AIR_EXISTS(nrrd->axis[ii].spaceDirection[dd]);
       }
     }
     if (exists) {
-      sprintf(err, "%s: spaceDim is 0, but space units, origin, or direction "
-              "is set", me);
+      sprintf(err, "%s: spaceDim is 0, but space directions are set", me);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
