@@ -36,7 +36,8 @@ _nrrdEncodingGzip_available(void) {
 }
 
 int
-_nrrdEncodingGzip_read(Nrrd *nrrd, NrrdIoState *nio) {
+_nrrdEncodingGzip_read(FILE *file, void *buf, size_t elNum,
+                       Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingGzip_read", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t num, bsize, size, total_read;
@@ -45,9 +46,6 @@ _nrrdEncodingGzip_read(Nrrd *nrrd, NrrdIoState *nio) {
   char *data;
   gzFile gzfin;
   
-  if (nio->skipData) {
-    return 0;
-  }
   num = nrrdElementNumber(nrrd);
   bsize = num * nrrdElementSize(nrrd);
   size = bsize;
@@ -57,14 +55,8 @@ _nrrdEncodingGzip_read(Nrrd *nrrd, NrrdIoState *nio) {
     exit(1);
   }
 
-  /* Allocate memory for the incoming data. */
-  if (_nrrdCalloc(nrrd, nio)) {
-    sprintf(err, "%s: couldn't allocate sufficient memory for all data", me);
-    biffAdd(NRRD, err); return 1;
-  }
-
   /* Create the gzFile for reading in the gzipped data. */
-  if ((gzfin = _nrrdGzOpen(nio->dataFile, "r")) == Z_NULL) {
+  if ((gzfin = _nrrdGzOpen(file, "rb")) == Z_NULL) {
     /* there was a problem */
     sprintf(err, "%s: error opening gzFile", me);
     biffAdd(NRRD, err);
@@ -100,7 +92,8 @@ _nrrdEncodingGzip_read(Nrrd *nrrd, NrrdIoState *nio) {
   data = nrrd->data;
   
   /* Ok, now we can begin reading. */
-  while ((error = _nrrdGzRead(gzfin, data, block_size, &read)) == 0 && read > 0) {
+  while ((error = _nrrdGzRead(gzfin, data, block_size, &read)) == 0 
+         && read > 0) {
     /* Increment the data pointer to the next available spot. */
     data += read; 
     total_read += read;
@@ -122,7 +115,7 @@ _nrrdEncodingGzip_read(Nrrd *nrrd, NrrdIoState *nio) {
   }
 
   /* Close the gzFile.  Since _nrrdGzClose does not close the FILE* we
-     will not encounter problems when nio->dataFile is closed later. */
+     will not encounter problems when dataFile is closed later. */
   if (_nrrdGzClose(gzfin) != 0) {
     sprintf(err, "%s: error closing gzFile", me);
     biffAdd(NRRD, err);
@@ -146,7 +139,8 @@ _nrrdEncodingGzip_read(Nrrd *nrrd, NrrdIoState *nio) {
 }
 
 int
-_nrrdEncodingGzip_write(const Nrrd *nrrd, NrrdIoState *nio) {
+_nrrdEncodingGzip_write(FILE *file, const void *buf, size_t elNum,
+                        const Nrrd *nrrd, NrrdIoState *nio) {
   char me[]="_nrrdEncodingGzip_write", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t num, bsize, size, total_written;
@@ -155,14 +149,6 @@ _nrrdEncodingGzip_write(const Nrrd *nrrd, NrrdIoState *nio) {
   gzFile gzfout;
   unsigned int wrote;
   
-  if (nio->skipData) {
-    return 0;
-  }
-  /* this shouldn't actually be necessary ... */
-  if (!nrrdElementSize(nrrd)) {
-    sprintf(err, "%s: nrrd reports zero element size!", me);
-    biffAdd(NRRD, err); return 1;
-  }
   num = nrrdElementNumber(nrrd);
   if (!num) {
     sprintf(err, "%s: calculated number of elements to be zero!", me);
@@ -194,7 +180,7 @@ _nrrdEncodingGzip_write(const Nrrd *nrrd, NrrdIoState *nio) {
   fmt[fmt_i] = 0;
 
   /* Create the gzFile for writing in the gzipped data. */
-  if ((gzfout = _nrrdGzOpen(nio->dataFile, fmt)) == Z_NULL) {
+  if ((gzfout = _nrrdGzOpen(file, fmt)) == Z_NULL) {
     /* there was a problem */
     sprintf(err, "%s: error opening gzFile", me);
     biffAdd(NRRD, err);
@@ -241,7 +227,7 @@ _nrrdEncodingGzip_write(const Nrrd *nrrd, NrrdIoState *nio) {
   }
 
   /* Close the gzFile.  Since _nrrdGzClose does not close the FILE* we
-     will not encounter problems when nio->dataFile is closed later. */
+     will not encounter problems when dataFile is closed later. */
   if (_nrrdGzClose(gzfout) != 0) {
     sprintf(err, "%s: error closing gzFile", me);
     biffAdd(NRRD, err);
