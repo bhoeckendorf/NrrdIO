@@ -33,6 +33,8 @@
 ### source distribution is automated, and is controlled by this GNU
 ### makefile:
 ###
+### for the NrrdIO in ITK (do on linux):
+###
 ###    cvs update
 ###    rm -f itk_NrrdIO_mangle.h
 ###    touch itk_NrrdIO_mangle.h
@@ -42,6 +44,14 @@
 ###    unsetenv ITK_NRRDIO
 ###    make -f sample-GNUmakefile
 ###    perl mangle.pl itk >! itk_NrrdIO_mangle.h
+###    make -f sample-GNUmakefile clean
+###
+### for the NrrdIO in Teem:
+###
+###    cvs update
+###    make -f pre-GNUmakefile clean
+###    make -f pre-GNUmakefile
+###    make -f sample-GNUmakefile
 ###    make -f sample-GNUmakefile clean
 ###
 ### This file is the single place where the required Teem source files
