@@ -29,6 +29,11 @@ PLATFORM_DEFS = \
   -DTEEM_QNANHIBIT=1 \
   -DTEEM_BIGBITFIELD=1
 
+### This also has to be set per-architecture- whether or not we need to
+### run ranlib on libraries created via ar
+###
+RANLIB = ranlib
+
 ### Assuming NrrdIO will be built with zlib enabled (due to "-DTEEM_ZLIB=1"
 ### on the source compilation, below), these (may) need to be set to help 
 ### find the zlib includes and libraries
@@ -46,7 +51,7 @@ all: $(ALL)
 ###
 libNrrdIO.a : $(patsubst %.c,%.o,$(shell cat NrrdIO_Srcs.txt))
 	ar ru $@ $^
-	ranlib $@
+	$(if $(RANLIB),$(RANLIB) $@,)
 
 ### Compiling the source files will also have some platform-specific stuff
 ###
