@@ -79,6 +79,18 @@ demoIO(char *filename) {
 
 int
 main(int argc, char **argv) {
+  char *err;
+
+  if (!nrrdSanity()) {
+    fprintf(stderr, "\n");
+    fprintf(stderr, "!!! nrrd sanity check FAILED: fix and re-compile\n");
+    err = biffGet(NRRD);
+    fprintf(stderr, "%s\n", err);
+    free(err); 
+    return 1;
+  } else {
+    fprintf(stderr, "(nrrdSanity check passed)\n\n");
+  }
 
   if (2 != argc) {
     fprintf(stderr, "usage: demoIO <filename>\n");
