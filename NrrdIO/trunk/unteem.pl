@@ -20,8 +20,11 @@ while (<>) {
     s|#include <teem(.*)>|#include "teem$1"|g;
     if ($ITK) {
 	s|\/\* NrrdIO-hack-000 \*\/|\/\* THE FOLLOWING INCLUDE IS ONLY FOR THE ITK DISTRIBUTION.\n   This header mangles the symbols in the NrrdIO library, preventing\n   conflicts in applications linked against two versions of NrrdIO. \*\/\n#include "itk_NrrdIO_mangle.h"|g;
+    } else {
+	s|\/\* NrrdIO-hack-000 \*\/||g;
     }
-    s|.* \/\* NrrdIO-hack-001 \*\/|#if 1|g;
+    s|\/\* NrrdIO-hack-001 \*\/|#define TEEM_BUILD 1|g;
+    s|.* \/\* NrrdIO-hack-002 \*\/|#if 1|g;
     print if $printing;
     $printing = 1 if (m/END non-NrrdIO/);
 }
