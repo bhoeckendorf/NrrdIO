@@ -50,7 +50,7 @@ double nrrdDefSpacing = 1.0;
    specifying this information.  It is just global state.  Obviously,
    like defaults, they are not thread-safe if different threads ever
    set them differently. */
-int nrrdStateVerboseIO = 1;
+int nrrdStateVerboseIO = 0;
 int nrrdStateAlwaysSetContent = AIR_TRUE;
 int nrrdStateDisableContent = AIR_FALSE;
 char *nrrdStateUnknownContent = NRRD_UNKNOWN;
