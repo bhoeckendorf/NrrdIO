@@ -46,8 +46,15 @@ $(warning * Environment variable TEEM_ROOT not set.)\
 $(warning *)\
 $(error Make quitting))
 
+$(if $(wildcard $(TEEM_ROOT)/src/air/*.c),,\
+$(warning *)\
+$(warning * Environment variable TEEM_ROOT=$(TEEM_ROOT) not correctly set:)\
+$(warning * Must directory containing "src", "include", etc. of teem)\
+$(warning *)\
+$(error Make quitting))
+
 ### The following sources are pretty much stubs, to create the symbols, 
-### but not the functionality of different formats and the bzip2 encoding.
+### but not the functionality, of different formats and the bzip2 encoding.
 ### As such, they are NOT copied from teem but are made for NrrdIO.
 ###
 NEED_NOT = encodingBzip2.c formatEPS.c formatPNG.c formatPNM.c \
