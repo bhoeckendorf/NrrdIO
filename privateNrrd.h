@@ -96,6 +96,7 @@ extern int _nrrdKindAltered(int kindIn);
 extern void _nrrdAxisInfoCopy(NrrdAxisInfo *dest, const NrrdAxisInfo *src,
                               int bitflag);
 extern void _nrrdAxisInfoInit(NrrdAxisInfo *axis);
+extern void _nrrdAxisInfoNewInit(NrrdAxisInfo *axis);
 extern int _nrrdCenter(int center);
 extern int _nrrdCenter2(int center, int def);
 
@@ -130,7 +131,6 @@ extern int nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin);
 extern int _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag);
 extern int _nrrdSizeCheck(int dim, const int *size, int useBiff);
 extern void _nrrdTraverse(Nrrd *nrrd);
-extern int _nrrdCopyShallow (Nrrd *nout, const Nrrd *nin);
 
 #if TEEM_ZLIB
 #include <zlib.h>
