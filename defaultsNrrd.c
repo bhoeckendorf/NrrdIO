@@ -43,7 +43,7 @@ const NrrdEncoding *nrrdDefWriteEncoding = &_nrrdEncodingRaw;
 int nrrdDefWriteBareText = AIR_TRUE;
 int nrrdDefWriteCharsPerLine = 75;
 int nrrdDefWriteValsPerLine = 8;
-int nrrdDefCenter = nrrdCenterNode;
+int nrrdDefCenter = nrrdCenterCell;
 double nrrdDefSpacing = 1.0;
 
 /* these aren't really "defaults" because there's no other channel for
