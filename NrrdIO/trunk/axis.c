@@ -35,7 +35,7 @@ _nrrdAxisInfoInit(NrrdAxisInfo *axis) {
     axis->size = 0;
     axis->spacing = axis->thickness = AIR_NAN;
     axis->min = axis->max = AIR_NAN;
-    for (dd=0; dd<NRRD_DIM_MAX; dd++) {
+    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
       axis->spaceDirection[dd] = AIR_NAN;
     }
     axis->center = nrrdCenterUnknown;
@@ -65,6 +65,8 @@ nrrdKindSize(int kind) {
 
   switch (kind) {
   case nrrdKindDomain:
+  case nrrdKindSpace:
+  case nrrdKindTime:
   case nrrdKindList:
     ret = 0;
     break;
@@ -129,6 +131,8 @@ _nrrdKindAltered(int kindIn) {
        that the kind is conserved, which is exactly NOT what we do ... */
   } else {
     if (nrrdKindDomain == kindIn
+        || nrrdKindSpace == kindIn
+        || nrrdKindTime == kindIn
         || nrrdKindList == kindIn) {
       /* HEY: shouldn't we disallow or at least warn when a "List"
          is being resampled? */
@@ -166,7 +170,7 @@ _nrrdAxisInfoCopy(NrrdAxisInfo *dest, const NrrdAxisInfo *src, int bitflag) {
     dest->max = src->max;
   }
   if (!(NRRD_AXIS_INFO_SPACEDIRECTION_BIT & bitflag)) {
-    for (ii=0; ii<NRRD_DIM_MAX; ii++) {
+    for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
       dest->spaceDirection[ii] = src->spaceDirection[ii];
     }
   }
@@ -256,7 +260,7 @@ nrrdAxisInfoCopy(Nrrd *nout, const Nrrd *nin, const int *axmap, int bitflag) {
 **      nrrdAxisInfoThickness: double*
 **            nrrdAxisInfoMin: double*
 **            nrrdAxisInfoMax: double*
-** nrrdAxisInfoSpaceDirection: double (*var)[NRRD_DIM_MAX]
+** nrrdAxisInfoSpaceDirection: double (*var)[NRRD_SPACE_DIM_MAX]
 **         nrrdAxisInfoCenter: int*
 **           nrrdAxisInfoKind: int*
 **          nrrdAxisInfoLabel: char**
@@ -303,7 +307,7 @@ nrrdAxisInfoSet_nva(Nrrd *nrrd, int axInfo, const void *_info) {
           break;
         }
       }
-      for (ii=minii; ii<NRRD_DIM_MAX; ii++) {
+      for (ii=minii; ii<NRRD_SPACE_DIM_MAX; ii++) {
         nrrd->axis[d].spaceDirection[ii] = AIR_NAN;
       }
       break;
@@ -325,15 +329,13 @@ nrrdAxisInfoSet_nva(Nrrd *nrrd, int axInfo, const void *_info) {
   }
   if (nrrdAxisInfoSpaceDirection == axInfo) {
     for (d=nrrd->dim; d<NRRD_DIM_MAX; d++) {
-      for (ii=0; ii<NRRD_DIM_MAX; ii++) {
+      for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
         nrrd->axis[d].spaceDirection[ii] = AIR_NAN;
       }
     }    
   }
   return;
 }
-
-typedef double svec_t[NRRD_DIM_MAX];
 
 /*
 ******** nrrdAxisInfoSet()
@@ -354,11 +356,11 @@ typedef double svec_t[NRRD_DIM_MAX];
 */
 void
 nrrdAxisInfoSet(Nrrd *nrrd, int axInfo, ...) {
-  NRRD_TYPE_BIGGEST *space[NRRD_DIM_MAX];
+  NRRD_TYPE_BIGGEST *buffer[NRRD_DIM_MAX];
   _nrrdAxisInfoSetPtrs info;
   int d, ii;
   va_list ap;
-  double *dp, svec[NRRD_DIM_MAX][NRRD_DIM_MAX];
+  double *dp, svec[NRRD_DIM_MAX][NRRD_SPACE_DIM_MAX];
 
   if (!( nrrd 
          && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
@@ -366,7 +368,7 @@ nrrdAxisInfoSet(Nrrd *nrrd, int axInfo, ...) {
     return;
   }
 
-  info.P = space;
+  info.P = buffer;
   va_start(ap, axInfo);
   for (d=0; d<nrrd->dim; d++) {
     switch (axInfo) {
@@ -386,7 +388,7 @@ nrrdAxisInfoSet(Nrrd *nrrd, int axInfo, ...) {
         /* nrrd->axis[d].spaceDirection[ii] = dp[ii]; */
         svec[d][ii] = dp[ii];
       }
-      for (ii=nrrd->spaceDim; ii<NRRD_DIM_MAX; ii++) {
+      for (ii=nrrd->spaceDim; ii<NRRD_SPACE_DIM_MAX; ii++) {
         /* nrrd->axis[d].spaceDirection[ii] = AIR_NAN; */
         svec[d][ii] = dp[ii];
       }
@@ -452,7 +454,7 @@ nrrdAxisInfoSet(Nrrd *nrrd, int axInfo, ...) {
 **      nrrdAxisInfoThickness: double*
 **            nrrdAxisInfoMin: double*
 **            nrrdAxisInfoMax: double*
-** nrrdAxisInfoSpaceDirection: double (*var)[NRRD_DIM_MAX]
+** nrrdAxisInfoSpaceDirection: double (*var)[NRRD_SPACE_DIM_MAX]
 **         nrrdAxisInfoCenter: int*
 **           nrrdAxisInfoKind: int*
 **          nrrdAxisInfoLabel: char**
@@ -491,7 +493,7 @@ nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *_info) {
       for (ii=0; ii<nrrd->spaceDim; ii++) {
         info.V[d][ii] = nrrd->axis[d].spaceDirection[ii];
       }
-      for (ii=nrrd->spaceDim; ii<NRRD_DIM_MAX; ii++) {
+      for (ii=nrrd->spaceDim; ii<NRRD_SPACE_DIM_MAX; ii++) {
         info.V[d][ii] = AIR_NAN;
       }
       break;
@@ -513,7 +515,7 @@ nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *_info) {
   }
   if (nrrdAxisInfoSpaceDirection == axInfo) {
     for (d=nrrd->dim; d<NRRD_DIM_MAX; d++) {
-      for (ii=0; ii<NRRD_DIM_MAX; ii++) {
+      for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
         info.V[d][ii] = AIR_NAN;
       }
     }
@@ -536,11 +538,11 @@ nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *_info) {
 */
 void
 nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
-  void *space[NRRD_DIM_MAX], *ptr;
+  void *buffer[NRRD_DIM_MAX], *ptr;
   _nrrdAxisInfoGetPtrs info;
   int d, ii;
   va_list ap;
-  double svec[NRRD_DIM_MAX][NRRD_DIM_MAX];
+  double svec[NRRD_DIM_MAX][NRRD_SPACE_DIM_MAX];
 
   if (!( nrrd 
          && AIR_IN_CL(1, nrrd->dim, NRRD_DIM_MAX) 
@@ -549,7 +551,7 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
   }
 
   if (nrrdAxisInfoSpaceDirection != axInfo) {
-    info.P = space;
+    info.P = buffer;
     nrrdAxisInfoGet_nva(nrrd, axInfo, info.P);
   } else {
     nrrdAxisInfoGet_nva(nrrd, axInfo, svec);
@@ -558,6 +560,10 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
   va_start(ap, axInfo);
   for (d=0; d<nrrd->dim; d++) {
     ptr = va_arg(ap, void*);
+    /*
+    printf("!%s(%d): ptr = %lu\n", 
+           "nrrdAxisInfoGet", d, (unsigned long)ptr);
+    */
     switch (axInfo) {
     case nrrdAxisInfoSize:
       *((int*)ptr) = info.I[d];
@@ -576,7 +582,7 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
       for (ii=0; ii<nrrd->spaceDim; ii++) {
         ((double*)ptr)[ii] = svec[d][ii];
       }
-      for (ii=nrrd->spaceDim; ii<NRRD_DIM_MAX; ii++) {
+      for (ii=nrrd->spaceDim; ii<NRRD_SPACE_DIM_MAX; ii++) {
         ((double*)ptr)[ii] = AIR_NAN;
       }
       break;
@@ -597,7 +603,7 @@ nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
     }
   }
   va_end(ap);
-  
+
   return;
 }
 

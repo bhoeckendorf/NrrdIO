@@ -53,6 +53,7 @@ nrrdSpaceDimension(int space) {
   case nrrdSpaceRightAnteriorSuperior:
   case nrrdSpaceLeftAnteriorSuperior:
   case nrrdSpaceLeftPosteriorSuperior:
+  case nrrdSpaceScannerXYZ:
   case nrrdSpace3DRightHanded:
   case nrrdSpace3DLeftHanded:
     ret = 3;
@@ -60,6 +61,7 @@ nrrdSpaceDimension(int space) {
   case nrrdSpaceRightAnteriorSuperiorTime:
   case nrrdSpaceLeftAnteriorSuperiorTime:
   case nrrdSpaceLeftPosteriorSuperiorTime:
+  case nrrdSpaceScannerXYZTime:
   case nrrdSpace3DRightHandedTime:
   case nrrdSpace3DLeftHandedTime:
     ret = 4;
@@ -86,6 +88,28 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
   nrrd->spaceDim = nrrdSpaceDimension(space);
   return 0;
 }
+
+void
+_nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX], 
+                       double sclA, const double vecA[NRRD_SPACE_DIM_MAX],
+                       double sclB, const double vecB[NRRD_SPACE_DIM_MAX]) {
+  int ii;
+  
+  for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
+    sum[ii] = sclA*vecA[ii] + sclB*vecB[ii];
+  }
+}
+                       
+void
+_nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
+                   double scl, const double vec[NRRD_SPACE_DIM_MAX]) {
+  int ii;
+  
+  for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
+    out[ii] = scl*vec[ii];
+  }
+}
+                       
 
 /*
 ** _nrrdContentGet
@@ -268,6 +292,9 @@ nrrdDescribe (FILE *file, const Nrrd *nrrd) {
 
 /*
 ** asserts all the properties associated with orientation information
+**
+** The most important part of this is asserting the per-axis mutual 
+** exclusion of min/max/spacing/units versus using spaceDirection.
 */
 int
 _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
@@ -278,9 +305,10 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
     sprintf(err, "%s: space %d invalid", me, nrrd->space);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
-  if (!AIR_IN_CL(0, nrrd->spaceDim, NRRD_DIM_MAX)) {
-    sprintf(err, "%s: space dimension %d is outside valid range [0,%d]",
-            me, nrrd->dim, NRRD_DIM_MAX);
+  if (!AIR_IN_CL(0, nrrd->spaceDim, NRRD_SPACE_DIM_MAX)) {
+    sprintf(err, "%s: space dimension %d is outside valid range "
+            "[0,NRRD_SPACE_DIM_MAX] = [0,%d]",
+            me, nrrd->dim, NRRD_SPACE_DIM_MAX);
     biffMaybeAdd(NRRD, err, useBiff); return 1;
   }
   if (nrrd->spaceDim) {
@@ -330,11 +358,11 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
     exists = AIR_FALSE;
-    for (dd=0; dd<NRRD_DIM_MAX; dd++) {
+    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
       exists |= airStrlen(nrrd->spaceUnits[dd]);
       exists |= AIR_EXISTS(nrrd->spaceOrigin[dd]);
       for (ii=0; ii<NRRD_DIM_MAX; ii++) {
-        exists |= AIR_EXISTS(nrrd->axis[dd].spaceDirection[ii]);
+        exists |= AIR_EXISTS(nrrd->axis[ii].spaceDirection[dd]);
       }
     }
     if (exists) {
@@ -352,7 +380,7 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int checkOrigin, int useBiff) {
 ** to a potentially incomplete nrrd in the process of being read, so
 ** the NrrdIoState stuff is not an issue.  This limits the utility of
 ** these to the field parsers for handling the more complex state 
-** involved in parsing some of the NRRD fields (like unitss).
+** involved in parsing some of the NRRD fields (like units).
 **
 ** return 0 if it is valid, and 1 if there is an error
 */
@@ -549,13 +577,19 @@ _nrrdFieldCheck_centers(const Nrrd *nrrd, int useBiff) {
 int
 _nrrdFieldCheck_kinds(const Nrrd *nrrd, int useBiff) {
   char me[]="_nrrdFieldCheck_kinds", err[AIR_STRLEN_MED];
-  int i, val[NRRD_DIM_MAX];
+  int i, wantLen, val[NRRD_DIM_MAX];
 
   nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoKind, val);
   for (i=0; i<nrrd->dim; i++) {
     if (!( nrrdKindUnknown == val[i]
-           || !airEnumValCheck(nrrdCenter, val[i]) )) {
+           || !airEnumValCheck(nrrdKind, val[i]) )) {
       sprintf(err, "%s: axis %d kind %d invalid", me, i, val[i]);
+      biffMaybeAdd(NRRD, err, useBiff); return 1;
+    }
+    wantLen = nrrdKindSize(val[i]);
+    if (wantLen && wantLen != nrrd->axis[i].size) {
+      sprintf(err, "%s: axis %d kind %s requires size %d, but have %d", me,
+              i, airEnumStr(nrrdKind, val[i]), wantLen, nrrd->axis[i].size);
       biffMaybeAdd(NRRD, err, useBiff); return 1;
     }
   }
@@ -671,7 +705,6 @@ int
   _nrrdFieldCheck_noop,           /* max */
   _nrrdFieldCheck_old_min,
   _nrrdFieldCheck_old_max,
-  _nrrdFieldCheck_noop,           /* data_file */
   _nrrdFieldCheck_noop,           /* endian */
   _nrrdFieldCheck_noop,           /* encoding */
   _nrrdFieldCheck_noop,           /* line_skip */
@@ -680,6 +713,7 @@ int
   _nrrdFieldCheck_noop,           /* sample units */
   _nrrdFieldCheck_space_units,
   _nrrdFieldCheck_space_origin,
+  _nrrdFieldCheck_noop,           /* data_file */
 };
 
 int
@@ -827,6 +861,22 @@ nrrdElementNumber (const Nrrd *nrrd) {
     num *= size[d];
   }
   return num;
+}
+
+void
+_nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, Nrrd *nrrd, int split) {
+  int dd, size[NRRD_DIM_MAX];
+
+  nrrdAxisInfoGet_nva(nrrd, nrrdAxisInfoSize, size);
+  *pieceSize = 1;
+  for (dd=0; dd<split; dd++) {
+    *pieceSize *= size[dd];
+  }
+  *pieceNum = 1;
+  for (dd=split; dd<nrrd->dim; dd++) {
+    *pieceNum *= size[dd];
+  }
+  return;
 }
 
 /*
