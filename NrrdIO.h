@@ -31,10 +31,7 @@
 #include <stdarg.h>
 #include <float.h>
 
-/* THE FOLLOWING INCLUDE IS ONLY FOR THE ITK DISTRIBUTION.
-   This header mangles the symbols in the NrrdIO library, preventing
-   conflicts in applications linked against two versions of NrrdIO. */
-#include "itk_NrrdIO_mangle.h"
+
 
 #ifdef __cplusplus
 extern "C" {
