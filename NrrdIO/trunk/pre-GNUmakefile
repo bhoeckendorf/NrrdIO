@@ -129,5 +129,5 @@ teem/%.h:
 clean:
 	rm -f $(notdir $(TEEM_HDRS) $(NEED_SRCS) \
                        $(NEED_PUB_HDRS) $(NEED_PRIV_HDRS)) \
-              NrrdIO.h NrrdIO_srcs.txt \
+              NrrdIO.h NrrdIO_Srcs.txt \
               *.o libNrrdIO.a sampleIO
