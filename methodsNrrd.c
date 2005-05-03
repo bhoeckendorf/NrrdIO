@@ -147,7 +147,7 @@ nrrdIoStateNix (NrrdIoState *nio) {
 */
 void
 nrrdBasicInfoInit (Nrrd *nrrd, int bitflag) {
-  int dd;
+  int dd, ee;
 
   if (!nrrd) {
     return;
@@ -189,6 +189,13 @@ nrrdBasicInfoInit (Nrrd *nrrd, int bitflag) {
       nrrd->spaceOrigin[dd] = AIR_NAN;
     }
   }
+  if (!(NRRD_BASIC_INFO_MEASUREMENTFRAME_BIT & bitflag)) {
+    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
+      for (ee=0; ee<NRRD_SPACE_DIM_MAX; ee++) {
+        nrrd->measurementFrame[dd][ee] = AIR_NAN;
+      }
+    }
+  }
   if (!(NRRD_BASIC_INFO_OLDMIN_BIT & bitflag)) {
     nrrd->oldMin = AIR_NAN;
   }
@@ -215,7 +222,7 @@ nrrdBasicInfoInit (Nrrd *nrrd, int bitflag) {
 int
 nrrdBasicInfoCopy (Nrrd *dest, const Nrrd *src, int bitflag) {
   char me[]="nrrdBasicInfoCopy", err[AIR_STRLEN_MED];
-  int dd;
+  int dd, ee;
 
   if (!( dest && src ))
     return 0;
@@ -272,8 +279,24 @@ nrrdBasicInfoCopy (Nrrd *dest, const Nrrd *src, int bitflag) {
     }
   }
   if (!(NRRD_BASIC_INFO_SPACEORIGIN_BIT & bitflag)) {
-    for (dd=0; dd<src->spaceDim; dd++) {
-      dest->spaceOrigin[dd] = src->spaceOrigin[dd];
+    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
+      if (AIR_IN_CL(0, dd, src->spaceDim-1)) {
+        dest->spaceOrigin[dd] = src->spaceOrigin[dd];
+      } else {
+        dest->spaceOrigin[dd] = AIR_NAN;
+      }
+    }
+  }
+  if (!(NRRD_BASIC_INFO_MEASUREMENTFRAME_BIT & bitflag)) {
+    for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
+      for (ee=0; ee<NRRD_SPACE_DIM_MAX; ee++) {
+        if (AIR_IN_CL(0, dd, src->spaceDim-1)
+            && AIR_IN_CL(0, ee, src->spaceDim-1)) {
+          dest->measurementFrame[dd][ee] = src->measurementFrame[dd][ee];
+        } else {
+          dest->measurementFrame[dd][ee] = AIR_NAN;
+        }
+      }
     }
     for (dd=src->spaceDim; dd<NRRD_SPACE_DIM_MAX; dd++) {
       dest->spaceOrigin[dd] = AIR_NAN;
