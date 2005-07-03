@@ -1362,6 +1362,82 @@ extern "C" {
    ? ((max) - (min))/(size)                        \
    : ((max) - (min))/((size) - 1))                 \
 
+/*
+******** NRRD_COORD_UPDATE
+**
+** This is for doing the "carrying" associated with gradually
+** incrementing an array of coordinates.  Assuming that the given
+** coordinate array "coord" has been incrementing by adding 1 to THE
+** FIRST, THE ZERO-ETH, ELEMENT (this is a strong assumption), then,
+** this macro is good for propagating the change up to higher axes
+** (which really only happens when the position has stepped over the
+** limit on a lower axis.)  Relies on the array of axes sizes "size",
+** as as the length "dim" of "coord" and "size".
+**
+** This may be turned into something more general purpose soon. 
+*/
+#define NRRD_COORD_UPDATE(coord, size, dim)    \
+do {                                           \
+  int d;                                       \
+  for (d=0;                                    \
+       d < (dim)-1 && (coord)[d] == (size)[d]; \
+       d++) {                                  \
+    (coord)[d] = 0;                            \
+    (coord)[d+1]++;                            \
+  }                                            \
+} while (0)
+
+/*
+******** NRRD_COORD_INCR
+**
+** same as NRRD_COORD_UPDATE, but starts by incrementing coord[idx]
+*/
+#define NRRD_COORD_INCR(coord, size, dim, idx) \
+do {                                           \
+  int d;                                       \
+  for (d=idx, (coord)[d]++;                    \
+       d < (dim)-1 && (coord)[d] == (size)[d]; \
+       d++) {                                  \
+    (coord)[d] = 0;                            \
+    (coord)[d+1]++;                            \
+  }                                            \
+} while (0)
+
+/*
+******** NRRD_INDEX_GEN
+**
+** Given a coordinate array "coord", as well as the array sizes "size"
+** and dimension "dim", calculates the linear index, and stores it in
+** "I".
+*/
+#define NRRD_INDEX_GEN(I, coord, size, dim)   \
+do {                                          \
+  int d;                                      \
+  for (d=(dim)-1, (I)=(coord)[d--];           \
+       d >= 0;                                \
+       d--) {                                 \
+    (I) = (coord)[d] + (size)[d]*(I);         \
+  }                                           \
+} while (0)
+
+/*
+******** NRRD_COORD_GEN
+**
+** opposite of NRRD_INDEX_GEN: going from linear index "I" to
+** coordinate array "coord".
+**
+** HUGE NOTE: the I argument will end up as ZERO when this is done!
+** If passing a loop control variable, pass a copy instead!
+** Hello, side-effects!  This is awful!
+*/
+#define NRRD_COORD_GEN(coord, size, dim, I)   \
+do {                                          \
+  int d;                                      \
+  for (d=0; d<=(dim)-1; d++) {                \
+    (coord)[d] = I % (size)[d];               \
+    I /= (size)[d];                           \
+  }                                           \
+} while (0)
 
 #ifdef __cplusplus
 }
@@ -1924,6 +2000,15 @@ TEEM_API int    (*nrrdSprint[NRRD_TYPE_MAX+1])(char *, const void *);
 /******** permuting, shuffling, and all flavors of reshaping */
 /* reorder.c */
 TEEM_API int nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, int ax);
+TEEM_API int nrrdInvertPerm(int *invp, const int *perm, int n);
+TEEM_API int nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const int *axes);
+TEEM_API int nrrdShuffle(Nrrd *nout, const Nrrd *nin, int axis,
+                         const int *perm);
+
+/******** sampling, slicing, cropping */
+/* subset.c */
+TEEM_API int nrrdSlice(Nrrd *nout, const Nrrd *nin, int axis, int pos);
+TEEM_API int nrrdCrop(Nrrd *nout, const Nrrd *nin, int *min, int *max);
 
 #ifdef __cplusplus
 }

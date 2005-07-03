@@ -26,13 +26,20 @@
 # source files where there is a concern of name-space collision induced
 # by linking to two different version of NrrdIO
 #
-# You probably shouldn't run this on a mac: all symbols are preceeded by _
-#
 
 if (0 != $#ARGV) {
     die "usage: perl mangle.pl <prefix>\n";
 }
 $prefix = $ARGV[0];
+
+# there's probably a proper way to detect if the compiler is putting
+# an underscore in front of all the symbols, but this works to detect
+# what happens on macs
+if (exists $ENV{OSTYPE} and "darwin" eq $ENV{OSTYPE}) {
+    $mac = 1;
+} else {
+    $mac = 0;
+}
 
 print "#ifndef ${prefix}_NrrdIO_mangle_h\n";
 print "#define ${prefix}_NrrdIO_mangle_h\n";
@@ -49,16 +56,21 @@ print "NrrdIO distribution:\n";
 print "\n";
 print "  perl mangle.pl ${prefix} > ${prefix}_NrrdIO_mangle.h\n";
 print "\n";
-print "This uses nm to list all text (T) and data (D) symbols\n";
+print "This uses nm to list all text (T), data (D) symbols, as well\n";
+print "read-only (R) things (seen on Linux) and \"other\" (S) things\n";
+print "(seen on Mac).  On Macs, the preceeding underscore is removed.\n";
 print "*/\n";
 print "\n";
 open(NM, "nm libNrrdIO.a |");
 while (<NM>) {
-    if (m/ [TD] /) {
-	s|.* [TD] (.*)|$1|g;
-	chop;
-	$sym = $_;
-	print "#define ${sym} ${prefix}_${sym}\n";
+    if (m/ [TDRS] /) {
+        s|.* [TDRS] (.*)|$1|g;
+        if ($mac) {
+            s|^_||g;
+        }
+        chop;
+        $sym = $_;
+        print "#define ${sym} ${prefix}_${sym}\n";
     }
 }
 close(NM);
