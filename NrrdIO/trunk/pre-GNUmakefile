@@ -26,7 +26,7 @@
 ### source distribution is automated, and is controlled by this GNU
 ### makefile:
 ###
-### for the NrrdIO in ITK (do on linux):
+### for the NrrdIO in ITK:
 ###
 ###    cvs update
 ###    rm -f itk_NrrdIO_mangle.h
@@ -85,7 +85,8 @@ NEED_NRRD = $(addprefix nrrd/, \
   accessors.c defaultsNrrd.c enumsNrrd.c arraysNrrd.c methodsNrrd.c \
   reorder.c axis.c simple.c comment.c keyvalue.c endianNrrd.c \
   parseNrrd.c gzio.c read.c write.c format.c formatNRRD.c \
-  encoding.c encodingRaw.c encodingAscii.c encodingHex.c encodingGzip.c)
+  encoding.c encodingRaw.c encodingAscii.c encodingHex.c encodingGzip.c \
+  subset.c reorder.c)
 NEED_SRCS = $(NEED_AIR) $(NEED_BIFF) $(NEED_NRRD)
 NEED_PUB_HDRS = air/air.h biff/biff.h \
   $(addprefix nrrd/, nrrdDefines.h nrrdEnums.h nrrdMacros.h nrrd.h)
