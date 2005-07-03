@@ -29,8 +29,6 @@
 ### for the NrrdIO in ITK:
 ###
 ###    cvs update
-###    rm -f itk_NrrdIO_mangle.h
-###    touch itk_NrrdIO_mangle.h
 ###    make -f pre-GNUmakefile clean
 ###    setenv ITK_NRRDIO
 ###    make -f pre-GNUmakefile
