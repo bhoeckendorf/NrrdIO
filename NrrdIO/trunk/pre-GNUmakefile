@@ -86,7 +86,7 @@ NEED_NRRD = $(addprefix nrrd/, \
   reorder.c axis.c simple.c comment.c keyvalue.c endianNrrd.c \
   parseNrrd.c gzio.c read.c write.c format.c formatNRRD.c \
   encoding.c encodingRaw.c encodingAscii.c encodingHex.c encodingGzip.c \
-  subset.c reorder.c)
+  subset.c)
 NEED_SRCS = $(NEED_AIR) $(NEED_BIFF) $(NEED_NRRD)
 NEED_PUB_HDRS = air/air.h biff/biff.h \
   $(addprefix nrrd/, nrrdDefines.h nrrdEnums.h nrrdMacros.h nrrd.h)
