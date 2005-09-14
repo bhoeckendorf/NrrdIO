@@ -50,6 +50,11 @@ nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
     /* we don't bother adding comments with no length */
     return 0;
   }
+  if (!strcmp(_str, _nrrdFormatURLLine0)
+      || !strcmp(_str, _nrrdFormatURLLine1)) {
+    /* sneaky hack: don't store the format URL comment lines */
+    return 0;
+  }
   str = airStrdup(_str);
   if (!str) {
     /*
@@ -61,7 +66,7 @@ nrrdCommentAdd(Nrrd *nrrd, const char *_str) {
   /* clean out carraige returns that would screw up reader */
   airOneLinify(str);
   i = airArrayLenIncr(nrrd->cmtArr, 1);
-  if (-1 == i) {
+  if (!nrrd->cmtArr->data) {
     /*
     sprintf(err, "%s: couldn't lengthen comment array", me);
     biffMaybeAdd(NRRD, err, useBiff);

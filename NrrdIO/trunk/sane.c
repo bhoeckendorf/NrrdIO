@@ -23,6 +23,7 @@
 */
 
 #include "NrrdIO.h"
+#include "privateAir.h"
 
 /*
 ******** airSanity()
@@ -76,9 +77,9 @@ airSanity(void) {
 
   /* run-time NaN checks */
   pinf = DBL_MAX;
-  pinf = pinf * pinf * pinf;
-  pinf = pinf * pinf * pinf;
-  pinf = pinf * pinf * pinf;
+  pinf = _airSanityHelper(pinf);
+  pinf = _airSanityHelper(pinf);
+  pinf = _airSanityHelper(pinf);
   if (AIR_EXISTS(pinf)) {
     return airInsane_pInfExists;
   }
@@ -90,9 +91,9 @@ airSanity(void) {
   if (AIR_EXISTS(nan)) {
     return airInsane_NaNExists;
   }
-  nanF = nan;
-  pinfF = pinf;
-  ninfF = ninf;
+  nanF = (float)nan;
+  pinfF = (float)pinf;
+  ninfF = (float)ninf;
   airFPValToParts_f(&sign, &exp, &mant, nanF);
   mant >>= 22;
   if (AIR_QNANHIBIT != (int)mant) {

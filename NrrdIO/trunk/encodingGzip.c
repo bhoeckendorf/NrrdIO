@@ -41,7 +41,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   char me[]="_nrrdEncodingGzip_read", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t bsize, total_read, block_size;
-  int i, error=0;
+  int i, error;
   unsigned int read;
   char *data;
   gzFile gzfin;
@@ -119,8 +119,8 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   
   /* Check to see if we got out as much as we thought we should. */
   if (total_read != bsize) {
-    sprintf(err, "%s: expected " _AIR_SIZE_T_FMT " bytes and received "
-            _AIR_SIZE_T_FMT " bytes",
+    sprintf(err, "%s: expected " _AIR_SIZE_T_CNV " bytes and received "
+            _AIR_SIZE_T_CNV " bytes",
             me, bsize, total_read);
     biffAdd(NRRD, err);
     return 1;
@@ -128,6 +128,11 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   
   return 0;
 #else
+  AIR_UNUSED(file);
+  AIR_UNUSED(_data);
+  AIR_UNUSED(elNum);
+  AIR_UNUSED(nrrd);
+  AIR_UNUSED(nio);
   sprintf(err, "%s: sorry, this nrrd not compiled with gzip enabled", me);
   biffAdd(NRRD, err); return 1;
 #endif
@@ -139,7 +144,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   char me[]="_nrrdEncodingGzip_write", err[AIR_STRLEN_MED];
 #if TEEM_ZLIB
   size_t bsize, total_written, block_size;
-  int fmt_i=0, error=0;
+  int fmt_i=0, error;
   char *data, fmt[4];
   gzFile gzfout;
   unsigned int wrote;
@@ -221,8 +226,8 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   
   /* Check to see if we got out as much as we thought we should. */
   if (total_written != bsize) {
-    sprintf(err, "%s: expected to write " _AIR_SIZE_T_FMT " bytes, but only "
-            "wrote " _AIR_SIZE_T_FMT,
+    sprintf(err, "%s: expected to write " _AIR_SIZE_T_CNV " bytes, but only "
+            "wrote " _AIR_SIZE_T_CNV,
             me, bsize, total_written);
     biffAdd(NRRD, err);
     return 1;
@@ -230,6 +235,11 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   
   return 0;
 #else
+  AIR_UNUSED(file);
+  AIR_UNUSED(_data);
+  AIR_UNUSED(elNum);
+  AIR_UNUSED(nrrd);
+  AIR_UNUSED(nio);
   sprintf(err, "%s: sorry, this nrrd not compiled with zlib "
           "(needed for gzip) enabled", me);
   biffAdd(NRRD, err); return 1;
