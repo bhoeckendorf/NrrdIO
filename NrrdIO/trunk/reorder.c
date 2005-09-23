@@ -25,8 +25,6 @@
 #include "NrrdIO.h"
 #include "privateNrrd.h"
 
-#include "teem32bit.h"
-
 /*
 ******** nrrdInvertPerm()
 **

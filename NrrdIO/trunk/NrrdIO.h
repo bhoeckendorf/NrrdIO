@@ -49,7 +49,7 @@ extern "C" {
 /* define TEEM_API */
 #define TEEM_BUILD 1
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
-#  if defined(TEEM_BUILD)
+#  if defined(TEEM_BUILD) || defined(teem_EXPORTS)
 #    define TEEM_API extern __declspec(dllexport)
 #  else
 #    define TEEM_API extern __declspec(dllimport)
@@ -443,6 +443,14 @@ TEEM_API void airMopDebug(airArray *arr);
 ** C's "error: parameter name omitted"
 */
 #define AIR_UNUSED(x) (void)(x)
+
+/*
+******** AIR_CAST
+**
+** just a cast, but with the added ability to grep for it more easily,
+** since casts should probably always be revisited and reconsidered.
+*/
+#define AIR_CAST(t, v) ((t)(v))
 
 /*
 ******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO
@@ -1457,7 +1465,7 @@ extern "C" {
 #define NRRD nrrdBiffKey
 
 /*
-******** NrrdAxis struct
+******** NrrdAxisInfo struct
 **
 ** all the information which can sensibly be associated with
 ** one axis of a nrrd.  The only member which MUST be explicitly
@@ -1790,14 +1798,14 @@ typedef struct NrrdIoState_t {
 } NrrdIoState;
 
 
-/******** defaults (nrrdDef..) and state (nrrdState..) */
+/******** defaults (nrrdDefault...) and state (nrrdState...) */
 /* defaultsNrrd.c */
-TEEM_API const NrrdEncoding *nrrdDefWriteEncoding;
-TEEM_API int nrrdDefWriteBareText;
-TEEM_API int nrrdDefWriteCharsPerLine;
-TEEM_API int nrrdDefWriteValsPerLine;
-TEEM_API int nrrdDefCenter;
-TEEM_API double nrrdDefSpacing;
+TEEM_API const NrrdEncoding *nrrdDefaultWriteEncoding;
+TEEM_API int nrrdDefaultWriteBareText;
+TEEM_API unsigned int nrrdDefaultWriteCharsPerLine;
+TEEM_API unsigned int nrrdDefaultWriteValsPerLine;
+TEEM_API int nrrdDefaultCenter;
+TEEM_API double nrrdDefaultSpacing;
 TEEM_API int nrrdStateVerboseIO;
 TEEM_API int nrrdStateKeyValuePairsPropagate;
 TEEM_API int nrrdStateAlwaysSetContent;
