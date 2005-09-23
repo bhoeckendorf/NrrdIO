@@ -24,7 +24,6 @@
 
 #include "NrrdIO.h"
 #include "privateNrrd.h"
-#include "teem32bit.h"
 
 /*
 Wed Sep 14 05:55:40 EDT 2005: these are no longer used
@@ -83,9 +82,9 @@ nrrdIoStateInit (NrrdIoState *nio) {
     nio->byteSkip = 0;
     memset(nio->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
     nio->detachedHeader = AIR_FALSE;
-    nio->bareText = nrrdDefWriteBareText;
-    nio->charsPerLine = nrrdDefWriteCharsPerLine;
-    nio->valsPerLine = nrrdDefWriteValsPerLine;
+    nio->bareText = nrrdDefaultWriteBareText;
+    nio->charsPerLine = nrrdDefaultWriteCharsPerLine;
+    nio->valsPerLine = nrrdDefaultWriteValsPerLine;
     nio->skipData = AIR_FALSE;
     nio->keepNrrdDataFileOpen = AIR_FALSE;
     nio->zlibLevel = -1;
