@@ -95,7 +95,8 @@ nrrdSpaceSet(Nrrd *nrrd, int space) {
       _nrrdSpaceVecSetNaN(nrrd->axis[axi].spaceDirection);
     }
     for (saxi=0; saxi<NRRD_SPACE_DIM_MAX; saxi++) {
-      nrrd->spaceUnits[saxi] = airFree(nrrd->spaceUnits[saxi]);
+      airFree(nrrd->spaceUnits[saxi]);
+      nrrd->spaceUnits[saxi] = NULL;
     }
     _nrrdSpaceVecSetNaN(nrrd->spaceOrigin);
   } else {
@@ -1441,7 +1442,7 @@ nrrdSanity (void) {
     biffAdd(NRRD, err); return 0;
   }
 
-  /* HEY: any other assumptions built into teem? */
+  /* HEY: any other assumptions built into Teem? */
 
   _nrrdSanity = 1;
   return 1;

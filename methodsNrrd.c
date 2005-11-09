@@ -59,13 +59,16 @@ nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin) {
 /* ------------------------------------------------------------ */
 
 void
-nrrdIoStateInit (NrrdIoState *nio) {
+nrrdIoStateInit(NrrdIoState *nio) {
 
   if (nio) {
     nio->path = (char *)airFree(nio->path);
     nio->base = (char *)airFree(nio->base);
     nio->line = (char *)airFree(nio->line);
     nio->dataFNFormat = (char *)airFree(nio->dataFNFormat);
+    /* the way IO to/from strings works, I don't think this should be freed */
+    nio->headerStringRead = NULL;
+    nio->headerStringWrite = NULL;
     airArrayLenSet(nio->dataFNArr, 0);
     /* closing this is always someone else's responsibility */
     nio->headerFile = NULL;
@@ -79,6 +82,8 @@ nrrdIoStateInit (NrrdIoState *nio) {
     nio->pos = 0;
     nio->endian = airEndianUnknown;
     nio->lineSkip = 0;
+    nio->headerStrlen = 0;
+    nio->headerStrpos = 0;
     nio->byteSkip = 0;
     memset(nio->seen, 0, (NRRD_FIELD_MAX+1)*sizeof(int));
     nio->detachedHeader = AIR_FALSE;
@@ -90,6 +95,7 @@ nrrdIoStateInit (NrrdIoState *nio) {
     nio->zlibLevel = -1;
     nio->zlibStrategy = nrrdZlibStrategyDefault;
     nio->bzip2BlockSize = -1;
+    nio->learningHeaderStrlen = AIR_FALSE;
     nio->oldData = NULL;
     nio->oldDataSize = 0;
     nio->format = nrrdFormatUnknown;
@@ -99,7 +105,7 @@ nrrdIoStateInit (NrrdIoState *nio) {
 }
 
 NrrdIoState *
-nrrdIoStateNew (void) {
+nrrdIoStateNew(void) {
   NrrdIoState *nio;
   
   nio = (NrrdIoState *)calloc(1, sizeof(NrrdIoState));
@@ -109,6 +115,8 @@ nrrdIoStateNew (void) {
     nio->line = NULL;
     nio->dataFNFormat = NULL;
     nio->dataFN = NULL;
+    nio->headerStringRead = NULL;
+    nio->headerStringWrite = NULL;
     nio->dataFNArr = airArrayNew((void**)(&(nio->dataFN)), NULL, 
                                  sizeof(char *), NRRD_FILENAME_INCR);
     airArrayPointerCB(nio->dataFNArr, airNull, airFree);
@@ -120,7 +128,7 @@ nrrdIoStateNew (void) {
 }
 
 NrrdIoState *
-nrrdIoStateNix (NrrdIoState *nio) {
+nrrdIoStateNix(NrrdIoState *nio) {
   
   nio->path = (char *)airFree(nio->path);
   nio->base = (char *)airFree(nio->base);
@@ -148,7 +156,7 @@ nrrdIoStateNix (NrrdIoState *nio) {
 ** the bitflag communicates which fields should *not* be initialized
 */
 void
-nrrdBasicInfoInit (Nrrd *nrrd, int bitflag) {
+nrrdBasicInfoInit(Nrrd *nrrd, int bitflag) {
   int dd, ee;
 
   if (!nrrd) {
@@ -222,7 +230,7 @@ nrrdBasicInfoInit (Nrrd *nrrd, int bitflag) {
 ** the bitflag communicates which fields should *not* be copied
 */
 int
-nrrdBasicInfoCopy (Nrrd *dest, const Nrrd *src, int bitflag) {
+nrrdBasicInfoCopy(Nrrd *dest, const Nrrd *src, int bitflag) {
   char me[]="nrrdBasicInfoCopy", err[AIR_STRLEN_MED];
   unsigned int dd, ee;
 
@@ -332,7 +340,7 @@ nrrdBasicInfoCopy (Nrrd *dest, const Nrrd *src, int bitflag) {
 ** just sets values to 0, NaN, "", NULL, or Unknown
 */
 void
-nrrdInit (Nrrd *nrrd) {
+nrrdInit(Nrrd *nrrd) {
   int ii;
 
   if (nrrd) {
@@ -352,7 +360,7 @@ nrrdInit (Nrrd *nrrd) {
 ** this does NOT use biff
 */
 Nrrd *
-nrrdNew (void) {
+nrrdNew(void) {
   int ii;
   Nrrd *nrrd;
   
@@ -408,7 +416,7 @@ nrrdNew (void) {
 ** this does NOT use biff
 */
 Nrrd *
-nrrdNix (Nrrd *nrrd) {
+nrrdNix(Nrrd *nrrd) {
   int ii;
   
   if (nrrd) {
@@ -437,7 +445,7 @@ nrrdNix (Nrrd *nrrd) {
 ** any comments.
 */
 Nrrd *
-nrrdEmpty (Nrrd *nrrd) {
+nrrdEmpty(Nrrd *nrrd) {
   
   if (nrrd) {
     nrrd->data = airFree(nrrd->data);
@@ -454,7 +462,7 @@ nrrdEmpty (Nrrd *nrrd) {
 ** always returns NULL
 */
 Nrrd *
-nrrdNuke (Nrrd *nrrd) {
+nrrdNuke(Nrrd *nrrd) {
   
   if (nrrd) {
     nrrdEmpty(nrrd);
@@ -466,7 +474,7 @@ nrrdNuke (Nrrd *nrrd) {
 /* ------------------------------------------------------------ */
 
 int
-_nrrdSizeCheck (const size_t *size, unsigned int dim, int useBiff) {
+_nrrdSizeCheck(const size_t *size, unsigned int dim, int useBiff) {
   char me[]="_nrrdSizeCheck", err[AIR_STRLEN_MED];
   size_t num, pre;
   unsigned int ai;
@@ -500,8 +508,8 @@ _nrrdSizeCheck (const size_t *size, unsigned int dim, int useBiff) {
 ** set nrrd->blockSize at some other time.
 */
 int
-nrrdWrap_nva (Nrrd *nrrd, void *data, int type,
-              unsigned int dim, const size_t *size) {
+nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
+             unsigned int dim, const size_t *size) {
   char me[]="nrrdWrap_nva", err[AIR_STRLEN_MED];
   
   if (!(nrrd && size)) {
@@ -532,7 +540,7 @@ nrrdWrap_nva (Nrrd *nrrd, void *data, int type,
 ** This does use biff.
 */
 int
-nrrdWrap (Nrrd *nrrd, void *data, int type, unsigned int dim, ...) {
+nrrdWrap(Nrrd *nrrd, void *data, int type, unsigned int dim, ...) {
   char me[] = "nrrdWrap", err[AIR_STRLEN_MED];
   va_list ap;
   size_t size[NRRD_DIM_MAX];
@@ -553,7 +561,7 @@ nrrdWrap (Nrrd *nrrd, void *data, int type, unsigned int dim, ...) {
 
 /*
 void
-_nrrdTraverse (Nrrd *nrrd) {
+_nrrdTraverse(Nrrd *nrrd) {
   char *test, tval;
   size_t I, N;
   int S;
@@ -569,7 +577,7 @@ _nrrdTraverse (Nrrd *nrrd) {
 */
 
 int
-_nrrdCopy (Nrrd *nout, const Nrrd *nin, int bitflag) {
+_nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag) {
   char me[]="_nrrdCopy", err[AIR_STRLEN_MED];
   size_t size[NRRD_DIM_MAX];
 
@@ -655,7 +663,7 @@ nrrdCopy(Nrrd *nout, const Nrrd *nin) {
 ** Note: This function DOES use biff
 */
 int 
-nrrdAlloc_nva (Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
+nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
   char me[] = "nrrdAlloc_nva", err[AIR_STRLEN_MED];
   size_t num;
   int esize;
@@ -705,7 +713,7 @@ nrrdAlloc_nva (Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
 ** all the axes sizes.
 */
 int 
-nrrdAlloc (Nrrd *nrrd, int type, unsigned int dim, ...) {
+nrrdAlloc(Nrrd *nrrd, int type, unsigned int dim, ...) {
   char me[]="nrrdAlloc", err[AIR_STRLEN_MED];
   size_t size[NRRD_DIM_MAX];
   unsigned int ai;
@@ -737,8 +745,8 @@ nrrdAlloc (Nrrd *nrrd, int type, unsigned int dim, ...) {
 ** also subscribes to the "don't mess with peripheral information" philosophy
 */
 int
-nrrdMaybeAlloc_nva (Nrrd *nrrd, int type,
-                    unsigned int dim, const size_t *size) {
+nrrdMaybeAlloc_nva(Nrrd *nrrd, int type,
+                   unsigned int dim, const size_t *size) {
   char me[]="nrrdMaybeAlloc_nva", err[AIR_STRLEN_MED];
   size_t sizeWant, sizeHave, numWant, elementSizeWant;
   int need;
@@ -817,7 +825,7 @@ nrrdMaybeAlloc_nva (Nrrd *nrrd, int type,
 ** all the axes sizes, thereby calculating the total number.
 */
 int 
-nrrdMaybeAlloc (Nrrd *nrrd, int type, unsigned int dim, ...) {
+nrrdMaybeAlloc(Nrrd *nrrd, int type, unsigned int dim, ...) {
   char me[]="nrrdMaybeAlloc", err[AIR_STRLEN_MED];
   size_t size[NRRD_DIM_MAX];
   unsigned int ai;
@@ -847,7 +855,7 @@ nrrdMaybeAlloc (Nrrd *nrrd, int type, unsigned int dim, ...) {
 ** "don't mess with peripheral information"
 */
 int
-nrrdPPM (Nrrd *ppm, size_t sx, size_t sy) {
+nrrdPPM(Nrrd *ppm, size_t sx, size_t sy) {
   char me[]="nrrdPPM", err[AIR_STRLEN_MED];
 
   if (nrrdMaybeAlloc(ppm, nrrdTypeUChar, 3, 3, sx, sy)) {
@@ -866,7 +874,7 @@ nrrdPPM (Nrrd *ppm, size_t sx, size_t sy) {
 ** "don't mess with peripheral information"
 */
 int
-nrrdPGM (Nrrd *pgm, size_t sx, size_t sy) {
+nrrdPGM(Nrrd *pgm, size_t sx, size_t sy) {
   char me[]="nrrdPGM", err[AIR_STRLEN_MED];
 
   if (nrrdMaybeAlloc(pgm, nrrdTypeUChar, 2, sx, sy)) {
