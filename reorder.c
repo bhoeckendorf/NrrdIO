@@ -35,7 +35,7 @@
 */
 int
 nrrdInvertPerm(unsigned int *invp, const unsigned int *pp, unsigned int nn) {
-  char me[]="nrrdInvertPerm", err[AIR_STRLEN_MED];
+  char me[]="nrrdInvertPerm", err[BIFF_STRLEN];
   int problem;
   unsigned int ii;
 
@@ -83,7 +83,7 @@ nrrdInvertPerm(unsigned int *invp, const unsigned int *pp, unsigned int nn) {
 */
 int
 nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
-  char me[]="nrrdAxesInsert", func[]="axinsert", err[AIR_STRLEN_MED];
+  char me[]="nrrdAxesInsert", func[]="axinsert", err[BIFF_STRLEN];
   unsigned int ai;
   
   if (!(nout && nin)) {
@@ -121,7 +121,7 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
     nout->axis[axis].kind = nrrdKindStub;
   }
   nout->axis[axis].size = 1;
-  if (nrrdContentSet(nout, func, nin, "%d", axis)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d", axis)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -150,7 +150,7 @@ nrrdAxesInsert(Nrrd *nout, const Nrrd *nin, unsigned int axis) {
 */
 int
 nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
-  char me[]="nrrdAxesPermute", func[]="permute", err[AIR_STRLEN_MED],
+  char me[]="nrrdAxesPermute", func[]="permute", err[BIFF_STRLEN],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   size_t idxOut, idxIn,      /* indices for input and output scanlines */
     lineSize,                /* size of block of memory which can be
@@ -183,7 +183,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
     sprintf(err, "%s: couldn't compute axis permutation inverse", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
   }
-  /* this shouldn't actually be necessary ... */
+  /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); airMopError(mop); return 1;
@@ -257,7 +257,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
       sprintf(buff2, "%s%d", (ai ? "," : ""), axes[ai]);
       strcat(buff1, buff2);
     }
-    if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
+    if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
       sprintf(err, "%s:", me);
       biffAdd(NRRD, err); airMopError(mop); return 1;
     }
@@ -302,7 +302,7 @@ nrrdAxesPermute(Nrrd *nout, const Nrrd *nin, const unsigned int *axes) {
 int
 nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
             const size_t *perm) {
-  char me[]="nrrdShuffle", func[]="shuffle", err[AIR_STRLEN_MED],
+  char me[]="nrrdShuffle", func[]="shuffle", err[BIFF_STRLEN],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   unsigned int 
     ai, ldim, len,
@@ -332,7 +332,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
       biffAdd(NRRD, err); return 1;
     }
   }
-  /* this shouldn't actually be necessary ... */
+  /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
@@ -395,7 +395,7 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
     sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "," : ""), perm[ai]);
     strcat(buff1, buff2);
   }
-  if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
+  if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }

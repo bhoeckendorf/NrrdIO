@@ -81,7 +81,7 @@ _nrrdHeaderStringOneLine(NrrdIoState *nio) {
 */
 int
 _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
-  char me[]="_nrrdOneLine", err[AIR_STRLEN_MED], **line;
+  char me[]="_nrrdOneLine", err[BIFF_STRLEN], **line;
   airArray *mop, *lineArr;
   int lineIdx;
   _cppu u;
@@ -192,7 +192,7 @@ _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
 */
 int
 _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file) {
-  char me[]="_nrrdCalloc", err[AIR_STRLEN_MED];
+  char me[]="_nrrdCalloc", err[BIFF_STRLEN];
   size_t needDataSize;
   int fd;
 
@@ -235,7 +235,7 @@ _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file) {
 int
 nrrdLineSkip(FILE *dataFile, NrrdIoState *nio) {
   unsigned int lsi, skipRet;
-  char me[]="nrrdLineSkip", err[AIR_STRLEN_MED];
+  char me[]="nrrdLineSkip", err[BIFF_STRLEN];
 
   /* For compressed data: If you don't actually have ascii headers on
      top of your gzipped data then you will potentially huge lines
@@ -271,19 +271,15 @@ nrrdLineSkip(FILE *dataFile, NrrdIoState *nio) {
 */
 int
 nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
-  int i, skipRet;
-  char me[]="nrrdByteSkip", err[AIR_STRLEN_MED];
+  int i, skipRet, backHack;
+  char me[]="nrrdByteSkip", err[BIFF_STRLEN];
   size_t bsize;
 
   if (!( dataFile && nrrd && nio )) {
     sprintf(err, "%s: got NULL pointer", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nio->byteSkip < -1) {
-    sprintf(err, "%s: byteSkip %d not valid", me, nio->byteSkip);
-    biffAdd(NRRD, err); return 1;
-  }
-  if (-1 == nio->byteSkip) {
+  if (-1 >= nio->byteSkip) {
     if (nrrdEncodingRaw != nio->encoding) {
       sprintf(err, "%s: can do backwards byte skip only in %s "
               "encoding, not %s", me,
@@ -296,7 +292,8 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     }
     bsize = nrrdElementNumber(nrrd)/_nrrdDataFNNumber(nio);
     bsize *= nrrdElementSize(nrrd);
-    if (fseek(dataFile, -((long)bsize), SEEK_END)) {
+    backHack = -nio->byteSkip - 1;
+    if (fseek(dataFile, -((long)(bsize + backHack)), SEEK_END)) {
       sprintf(err, "%s: failed to fseek(dataFile, " _AIR_SIZE_T_CNV
               ", SEEK_END)", me, bsize);
       biffAdd(NRRD, err); return 1;      
@@ -334,7 +331,7 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
 */
 int
 _nrrdRead(Nrrd *nrrd, FILE *file, const char *string, NrrdIoState *_nio) {
-  char me[]="_nrrdRead", err[AIR_STRLEN_MED];
+  char me[]="_nrrdRead", err[BIFF_STRLEN];
   unsigned int llen;
   NrrdIoState *nio;
   int nfi;
@@ -453,7 +450,7 @@ _nrrdRead(Nrrd *nrrd, FILE *file, const char *string, NrrdIoState *_nio) {
 */
 int
 nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *_nio) {
-  char me[]="nrrdRead", err[AIR_STRLEN_MED];
+  char me[]="nrrdRead", err[BIFF_STRLEN];
 
   if (_nrrdRead(nrrd, file, NULL, _nio)) {
     sprintf(err, "%s: trouble", me);
@@ -473,7 +470,7 @@ nrrdRead(Nrrd *nrrd, FILE *file, NrrdIoState *_nio) {
 */
 int
 nrrdStringRead(Nrrd *nrrd, const char *string, NrrdIoState *_nio) {
-  char me[]="nrrdRead", err[AIR_STRLEN_MED];
+  char me[]="nrrdRead", err[BIFF_STRLEN];
 
   if (_nrrdRead(nrrd, NULL, string, _nio)) {
     sprintf(err, "%s: trouble", me);
@@ -591,7 +588,7 @@ I plan on shamelessly copying this, just like I shamelessly copied the
 */
 int
 nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
-  char me[]="nrrdLoad", err[AIR_STRLEN_MED];
+  char me[]="nrrdLoad", err[BIFF_STRLEN];
   FILE *file;
   airArray *mop;
 

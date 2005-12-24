@@ -39,7 +39,7 @@
 ** explicitly.
 */
 
-const NrrdEncoding *nrrdDefaultWriteEncoding = &_nrrdEncodingRaw;
+int nrrdDefaultWriteEncodingType = nrrdEncodingTypeRaw;
 int nrrdDefaultWriteBareText = AIR_TRUE;
 unsigned int nrrdDefaultWriteCharsPerLine = 75;
 unsigned int nrrdDefaultWriteValsPerLine = 8;
