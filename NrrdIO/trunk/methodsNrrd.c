@@ -231,7 +231,7 @@ nrrdBasicInfoInit(Nrrd *nrrd, int bitflag) {
 */
 int
 nrrdBasicInfoCopy(Nrrd *dest, const Nrrd *src, int bitflag) {
-  char me[]="nrrdBasicInfoCopy", err[AIR_STRLEN_MED];
+  char me[]="nrrdBasicInfoCopy", err[BIFF_STRLEN];
   unsigned int dd, ee;
 
   if (!( dest && src ))
@@ -475,7 +475,7 @@ nrrdNuke(Nrrd *nrrd) {
 
 int
 _nrrdSizeCheck(const size_t *size, unsigned int dim, int useBiff) {
-  char me[]="_nrrdSizeCheck", err[AIR_STRLEN_MED];
+  char me[]="_nrrdSizeCheck", err[BIFF_STRLEN];
   size_t num, pre;
   unsigned int ai;
   
@@ -510,7 +510,7 @@ _nrrdSizeCheck(const size_t *size, unsigned int dim, int useBiff) {
 int
 nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
              unsigned int dim, const size_t *size) {
-  char me[]="nrrdWrap_nva", err[AIR_STRLEN_MED];
+  char me[]="nrrdWrap_nva", err[BIFF_STRLEN];
   
   if (!(nrrd && size)) {
     sprintf(err, "%s: got NULL pointer", me);
@@ -528,7 +528,7 @@ nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
 }
 
 /*
-******** nrrdWrap()
+******** nrrdWrap_va()
 **
 ** Minimal var args wrapper around nrrdWrap_nva, with the advantage of 
 ** taking all the axes sizes as the var args.
@@ -540,8 +540,8 @@ nrrdWrap_nva(Nrrd *nrrd, void *data, int type,
 ** This does use biff.
 */
 int
-nrrdWrap(Nrrd *nrrd, void *data, int type, unsigned int dim, ...) {
-  char me[] = "nrrdWrap", err[AIR_STRLEN_MED];
+nrrdWrap_va(Nrrd *nrrd, void *data, int type, unsigned int dim, ...) {
+  char me[]="nrrdWrap_va", err[BIFF_STRLEN];
   va_list ap;
   size_t size[NRRD_DIM_MAX];
   unsigned int ai;
@@ -578,7 +578,7 @@ _nrrdTraverse(Nrrd *nrrd) {
 
 int
 _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag) {
-  char me[]="_nrrdCopy", err[AIR_STRLEN_MED];
+  char me[]="_nrrdCopy", err[BIFF_STRLEN];
   size_t size[NRRD_DIM_MAX];
 
   if (!(nin && nout)) {
@@ -633,7 +633,7 @@ _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag) {
 */
 int
 nrrdCopy(Nrrd *nout, const Nrrd *nin) {
-  char me[]="nrrdCopy", err[AIR_STRLEN_MED];
+  char me[]="nrrdCopy", err[BIFF_STRLEN];
 
   if (_nrrdCopy(nout, nin, NRRD_BASIC_INFO_NONE)) {
     sprintf(err, "%s:", me);
@@ -658,13 +658,13 @@ nrrdCopy(Nrrd *nout, const Nrrd *nin) {
 **
 ** Note to Gordon: don't get clever and change ANY axis-specific
 ** information here.  It may be very convenient to set that before
-** nrrdAlloc() or nrrdMaybeAlloc()
+** nrrdAlloc or nrrdMaybeAlloc
 **
 ** Note: This function DOES use biff
 */
 int 
 nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
-  char me[] = "nrrdAlloc_nva", err[AIR_STRLEN_MED];
+  char me[]="nrrdAlloc_nva", err[BIFF_STRLEN];
   size_t num;
   int esize;
 
@@ -707,14 +707,14 @@ nrrdAlloc_nva(Nrrd *nrrd, int type, unsigned int dim, const size_t *size) {
 }
 
 /*
-******** nrrdAlloc()
+******** nrrdAlloc_va()
 **
 ** Handy wrapper around nrrdAlloc_nva, which takes, as its vararg list,
 ** all the axes sizes.
 */
 int 
-nrrdAlloc(Nrrd *nrrd, int type, unsigned int dim, ...) {
-  char me[]="nrrdAlloc", err[AIR_STRLEN_MED];
+nrrdAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
+  char me[]="nrrdAlloc_va", err[BIFF_STRLEN];
   size_t size[NRRD_DIM_MAX];
   unsigned int ai;
   va_list ap;
@@ -747,7 +747,7 @@ nrrdAlloc(Nrrd *nrrd, int type, unsigned int dim, ...) {
 int
 nrrdMaybeAlloc_nva(Nrrd *nrrd, int type,
                    unsigned int dim, const size_t *size) {
-  char me[]="nrrdMaybeAlloc_nva", err[AIR_STRLEN_MED];
+  char me[]="nrrdMaybeAlloc_nva", err[BIFF_STRLEN];
   size_t sizeWant, sizeHave, numWant, elementSizeWant;
   int need;
   unsigned int ai;
@@ -819,14 +819,14 @@ nrrdMaybeAlloc_nva(Nrrd *nrrd, int type,
 }
 
 /*
-******** nrrdMaybeAlloc()
+******** nrrdMaybeAlloc_va()
 **
 ** Handy wrapper around nrrdAlloc, which takes, as its vararg list
 ** all the axes sizes, thereby calculating the total number.
 */
 int 
-nrrdMaybeAlloc(Nrrd *nrrd, int type, unsigned int dim, ...) {
-  char me[]="nrrdMaybeAlloc", err[AIR_STRLEN_MED];
+nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
+  char me[]="nrrdMaybeAlloc_va", err[BIFF_STRLEN];
   size_t size[NRRD_DIM_MAX];
   unsigned int ai;
   va_list ap;
@@ -856,9 +856,10 @@ nrrdMaybeAlloc(Nrrd *nrrd, int type, unsigned int dim, ...) {
 */
 int
 nrrdPPM(Nrrd *ppm, size_t sx, size_t sy) {
-  char me[]="nrrdPPM", err[AIR_STRLEN_MED];
+  char me[]="nrrdPPM", err[BIFF_STRLEN];
 
-  if (nrrdMaybeAlloc(ppm, nrrdTypeUChar, 3, 3, sx, sy)) {
+  if (nrrdMaybeAlloc_va(ppm, nrrdTypeUChar, 3,
+                        AIR_CAST(size_t, 3), sx, sy)) {
     sprintf(err, "%s: couldn't allocate " _AIR_SIZE_T_CNV
             " x " _AIR_SIZE_T_CNV " 24-bit image", me, sx, sy);
     biffAdd(NRRD, err); return 1;
@@ -875,9 +876,10 @@ nrrdPPM(Nrrd *ppm, size_t sx, size_t sy) {
 */
 int
 nrrdPGM(Nrrd *pgm, size_t sx, size_t sy) {
-  char me[]="nrrdPGM", err[AIR_STRLEN_MED];
+  char me[]="nrrdPGM", err[BIFF_STRLEN];
 
-  if (nrrdMaybeAlloc(pgm, nrrdTypeUChar, 2, sx, sy)) {
+  if (nrrdMaybeAlloc_va(pgm, nrrdTypeUChar, 2,
+                        sx, sy)) {
     sprintf(err, "%s: couldn't allocate " _AIR_SIZE_T_CNV
             " x " _AIR_SIZE_T_CNV " 8-bit image", me, sx, sy);
     biffAdd(NRRD, err);

@@ -172,7 +172,7 @@ _nrrdKindAltered(int kindIn, int resampling) {
     kindOut = nrrdKindUnknown;
     /* HEY: setting the kindOut to unknown is arguably not a no-op.
        It is more like pointedly and stubbornly simplistic. So maybe
-       nrrdStateKindNoop could be renamed ... */
+       nrrdStateKindNoop could be renamed .. */
   } else {
     if (nrrdKindIsDomain(kindIn)
         || (0 == nrrdKindSize(kindIn) && !resampling)) {
@@ -394,7 +394,7 @@ nrrdAxisInfoSet_nva(Nrrd *nrrd, int axInfo, const void *_info) {
 }
 
 /*
-******** nrrdAxisInfoSet()
+******** nrrdAxisInfoSet_va()
 **
 ** var args front-end for nrrdAxisInfoSet_nva
 **
@@ -411,7 +411,7 @@ nrrdAxisInfoSet_nva(Nrrd *nrrd, int axInfo, const void *_info) {
 **          nrrdAxisInfoUnits: char*
 */
 void
-nrrdAxisInfoSet(Nrrd *nrrd, int axInfo, ...) {
+nrrdAxisInfoSet_va(Nrrd *nrrd, int axInfo, ...) {
   NRRD_TYPE_BIGGEST *buffer[NRRD_DIM_MAX];
   _nrrdAxisInfoSetPtrs info;
   unsigned int ai, si;
@@ -593,7 +593,7 @@ nrrdAxisInfoGet_nva(const Nrrd *nrrd, int axInfo, void *_info) {
 **          nrrdAxisInfoUnits: char**
 */
 void
-nrrdAxisInfoGet(const Nrrd *nrrd, int axInfo, ...) {
+nrrdAxisInfoGet_va(const Nrrd *nrrd, int axInfo, ...) {
   void *buffer[NRRD_DIM_MAX], *ptr;
   _nrrdAxisInfoGetPtrs info;
   unsigned int ai, si;
@@ -856,7 +856,7 @@ nrrdAxisInfoSpacingSet(Nrrd *nrrd, unsigned int ax) {
   max = nrrd->axis[ax].max;
   if (!( AIR_EXISTS(min) && AIR_EXISTS(max) )) {
     /* there's no actual basis on which to set the spacing information,
-       but we have to set it something, so here goes ... */
+       but we have to set it something, so here goes .. */
     nrrd->axis[ax].spacing = nrrdDefaultSpacing;
     return;
   }
@@ -958,6 +958,9 @@ nrrdSpatialAxesGet(const Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
 ** which correspond to dependent variables.  The return value is the
 ** number of range axes; that number of values are set in the given
 ** axisIdx[] array
+**
+** Note: this really is as simple as returning the complement of the
+** axis selected by nrrdDomainAxesGet()
 */
 unsigned int
 nrrdRangeAxesGet(const Nrrd *nrrd, unsigned int axisIdx[NRRD_DIM_MAX]) {
@@ -1091,7 +1094,7 @@ nrrdSpacingCalculate(const Nrrd *nrrd, unsigned int ax,
 int
 nrrdOrientationReduce(Nrrd *nout, const Nrrd *nin,
                       int setMinsFromOrigin) {
-  char me[]="nrrdOrientationReduce", err[AIR_STRLEN_MED];
+  char me[]="nrrdOrientationReduce", err[BIFF_STRLEN];
   unsigned int spatialAxisNum, spatialAxisIdx[NRRD_DIM_MAX], saxii;
   NrrdAxisInfo *axis;
 

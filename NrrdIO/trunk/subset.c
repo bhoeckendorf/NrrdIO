@@ -40,7 +40,7 @@
 */
 int
 nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
-  char me[]="nrrdSlice", func[]="slice", err[AIR_STRLEN_MED];
+  char me[]="nrrdSlice", func[]="slice", err[BIFF_STRLEN];
   size_t 
     I, 
     rowLen,                  /* length of segment */
@@ -74,7 +74,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
             me, pos, nin->axis[saxi].size-1);
     biffAdd(NRRD, err); return 1;
   }
-  /* this shouldn't actually be necessary ... */
+  /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
@@ -119,7 +119,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
-  if (nrrdContentSet(nout, func, nin, "%d,%d", saxi, pos)) {
+  if (nrrdContentSet_va(nout, func, nin, "%d,%d", saxi, pos)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
@@ -158,7 +158,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
 */
 int
 nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
-  char me[]="nrrdCrop", func[] = "crop", err[AIR_STRLEN_MED],
+  char me[]="nrrdCrop", func[] = "crop", err[BIFF_STRLEN],
     buff1[NRRD_DIM_MAX*30], buff2[AIR_STRLEN_SMALL];
   unsigned int ai;
   size_t I,
@@ -196,7 +196,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
       biffAdd(NRRD, err); return 1;
     }
   }
-  /* this shouldn't actually be necessary ... */
+  /* this shouldn't actually be necessary .. */
   if (!nrrdElementSize(nin)) {
     sprintf(err, "%s: nrrd reports zero element size!", me);
     biffAdd(NRRD, err); return 1;
@@ -304,7 +304,7 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
             (ai ? "x" : ""), min[ai], max[ai]);
     strcat(buff1, buff2);
   }
-  if (nrrdContentSet(nout, func, nin, "%s", buff1)) {
+  if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {
     sprintf(err, "%s:", me);
     biffAdd(NRRD, err); return 1;
   }
