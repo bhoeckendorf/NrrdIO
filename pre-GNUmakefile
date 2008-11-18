@@ -28,7 +28,7 @@
 ###
 ### for the NrrdIO in ITK:
 ###
-###    cvs update
+###    svn update
 ###    rm -f itk_NrrdIO_mangle.h
 ###    touch itk_NrrdIO_mangle.h
 ###    make -f pre-GNUmakefile clean
@@ -41,7 +41,7 @@
 ###
 ### for the NrrdIO in Teem:
 ###
-###    cvs update
+###    svn update
 ###    make -f pre-GNUmakefile clean
 ###    make -f pre-GNUmakefile
 ###    make -f sample-GNUmakefile
@@ -101,8 +101,13 @@ all: $(TEEM_HDRS) $(NEED_SRCS) $(NEED_PRIV_HDRS) NrrdIO.h NrrdIO_Srcs.txt
 ### NrrdIO.h is basically the result of cat'ing together all the 
 ### teem headers in $(NEED_HDRS), but we do need to "unteem" them.
 ###
-$(NEED_PUB_HDRS) $(NEED_PRIV_HDRS):
+$(NEED_PUB_HDRS):
 	tail +22 $(TEEM_SRC_ROOT)/src/$@ \
+         | perl unteem.pl \
+         | grep -v HAS_BEEN_INCLUDED > $(notdir $@)
+$(NEED_PRIV_HDRS):
+	tail +22 $(TEEM_SRC_ROOT)/src/$@ \
+         | cat preamble.c - \
          | perl unteem.pl \
          | grep -v HAS_BEEN_INCLUDED > $(notdir $@)
 NrrdIO.h: $(NEED_PUB_HDRS)
