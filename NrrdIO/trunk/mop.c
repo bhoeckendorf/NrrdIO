@@ -65,13 +65,25 @@ airMopNew() {
   return airArrayNew(NULL, NULL, sizeof(airMop), AIR_MOP_INCR);
 }
 
-void
+/*
+** this always returns 0, to facilitate this weird idiom:
+**
+**   if (!(nmeasr = nrrdNew())
+**       || airMopAdd(mop, nmeasr, (airMopper)nrrdNuke, airMopAlways)
+**       || !(nsize = nrrdNew())
+**       || airMopAdd(mop, nsize, (airMopper)nrrdNuke, airMopAlways)
+**       || !(pair = AIR_CAST(ccpair *, calloc(pctx->CCNum, sizeof(ccpair))))
+**       || airMopAdd(mop, pair, airFree, airMopAlways)) {
+**
+** GLK may regret this.
+*/
+int
 airMopAdd(airArray *arr, void *ptr, airMopper mop, int when) {
   airMop *mops;
   unsigned int ii;
   
   if (!arr) {
-    return;
+    return 0;
   }
 
   mops = (airMop *)arr->data;
@@ -80,7 +92,7 @@ airMopAdd(airArray *arr, void *ptr, airMopper mop, int when) {
     if (mops[ii].ptr == ptr && mops[ii].mop == mop) {
       mops[ii].when = when;
       /* we're done */
-      return;
+      return 0;
     }
   }
   /* this is a new ptr */
@@ -89,7 +101,7 @@ airMopAdd(airArray *arr, void *ptr, airMopper mop, int when) {
   mops[ii].ptr = ptr;
   mops[ii].mop = mop;
   mops[ii].when = when;
-  return;
+  return 0;
 }
 
 void

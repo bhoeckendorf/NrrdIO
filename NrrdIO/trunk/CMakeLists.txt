@@ -22,7 +22,8 @@
 # 3. This notice may not be removed or altered from any source distribution.
 #
 
-PROJECT(ITKNrrdIO)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+PROJECT(NrrdIO)
 INCLUDE_REGULAR_EXPRESSION("^.*.h$")
 
 #
@@ -84,8 +85,8 @@ ENDIF(QNANHIBIT)
   ADD_DEFINITIONS(-DTEEM_DIO=0)
 #ENDIF(USE_DIRECTIO)
 
-ADD_LIBRARY(ITKNrrdIO ${nrrdio_SRCS} )
-TARGET_LINK_LIBRARIES(ITKNrrdIO ${ITK_ZLIB_LIBRARIES} )
+ADD_LIBRARY(NrrdIO ${nrrdio_SRCS} )
+TARGET_LINK_LIBRARIES(NrrdIO ${ITK_ZLIB_LIBRARIES} )
 
 INSTALL_TARGETS(/lib/InsightToolkit ITKNrrdIO)
 INSTALL_FILES(/include/InsightToolkit/Utilities/NrrdIO "(\\.h)$")
