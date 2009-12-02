@@ -80,7 +80,7 @@ TEEM_HDRS = $(addprefix teem/, \
 NEED_AIR = $(addprefix air/, \
   754.c mop.c array.c parseAir.c dio.c \
   sane.c endianAir.c string.c enum.c miscAir.c)
-NEED_BIFF = biff/biffbiff.c
+NEED_BIFF = $(addprefix biff/, biffbiff.c biffmsg.c)
 NEED_NRRD = $(addprefix nrrd/, \
   accessors.c defaultsNrrd.c enumsNrrd.c arraysNrrd.c methodsNrrd.c \
   reorder.c axis.c simple.c comment.c keyvalue.c endianNrrd.c \
