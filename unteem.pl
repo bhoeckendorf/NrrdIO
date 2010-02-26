@@ -50,6 +50,9 @@ while (<>) {
     s|\/\* NrrdIO-hack-001 \*\/|#define TEEM_BUILD 1|g;
     s|.* \/\* NrrdIO-hack-002 \*\/|#if 1|g;
     s|.* \/\* NrrdIO-hack-003 \*\/|int nrrdStateVerboseIO = 0;|g;
+    if ($ITK) {
+        s|.* \/\* NrrdIO-hack-004 \*\/|#include "itk_zlib.h"|g;
+    }
     s|AIR_EXPORT|NRRDIO_EXPORT|g;
     s|BIFF_EXPORT|NRRDIO_EXPORT|g;
     s|NRRD_EXPORT|NRRDIO_EXPORT|g;
