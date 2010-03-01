@@ -96,17 +96,17 @@ NEED_PRIV_HDRS = air/privateAir.h nrrd/privateNrrd.h
 ### from air, biff, and nrrd
 ###
 .PHONY: all
-all: $(TEEM_HDRS) $(NEED_SRCS) $(NEED_PRIV_HDRS) NrrdIO.h NrrdIO_Srcs.txt
+all: $(TEEM_HDRS) $(NEED_SRCS) $(NEED_PRIV_HDRS) NrrdIO.h $(ITK_SRC_ROOT)/Utilities/itk_zlib.h NrrdIO_Srcs.txt
 
 ### NrrdIO.h is basically the result of cat'ing together all the 
 ### teem headers in $(NEED_HDRS), but we do need to "unteem" them.
 ###
 $(NEED_PUB_HDRS):
-	tail +22 $(TEEM_SRC_ROOT)/src/$@ \
+	tail --lines=+22 $(TEEM_SRC_ROOT)/src/$@ \
          | perl unteem.pl \
          | grep -v HAS_BEEN_INCLUDED > $(notdir $@)
 $(NEED_PRIV_HDRS):
-	tail +22 $(TEEM_SRC_ROOT)/src/$@ \
+	tail --lines=+22 $(TEEM_SRC_ROOT)/src/$@ \
          | cat preamble.c - \
          | perl unteem.pl \
          | grep -v HAS_BEEN_INCLUDED > $(notdir $@)
@@ -123,7 +123,7 @@ NrrdIO_Srcs.txt:
 ### The teem*.h headers: we need only change the pre-amble here
 ###
 teem/%.h: 
-	tail +22 $(TEEM_SRC_ROOT)/include/$(notdir $@) \
+	tail --lines=+22 $(TEEM_SRC_ROOT)/include/$(notdir $@) \
           | cat preamble.c - > $(notdir $@)
 
 ### The rest: by design, these targets have the library names as part
@@ -131,7 +131,7 @@ teem/%.h:
 ### source file without any VPATH games
 ###
 %.h %.c:
-	tail +22 $(TEEM_SRC_ROOT)/src/$@ \
+	tail --lines=+22 $(TEEM_SRC_ROOT)/src/$@ \
           | cat preamble.c - \
           | perl unteem.pl \
           | grep -v HAS_BEEN_INCLUDED > $(notdir $@)
