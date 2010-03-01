@@ -50,7 +50,7 @@ PLATFORM_DEFS = \
 
 ### Any architecture-specific flags to cc
 ###
-CCFLAGS = -O3 -ffloat-store -W -Wall -I$(ITK_BIN_ROOT)/Utilities -I$(ITK_SRC_ROOT)/Utilities
+CCFLAGS = -O3 -ffloat-store -W -Wall
 
 ### This also has to be set per-architecture- whether or not we need to
 ### run ranlib on libraries created via ar
@@ -62,7 +62,7 @@ RANLIB = ranlib
 ### find the zlib includes and libraries
 ###
 ZLIB_IPATH =
-ZLIB_LPATH =$(ITK_BIN_ROOT)/bin/libitkzlib.a
+ZLIB_LPATH =
 
 ### We'll build the static libNrrdIO library, and one test program
 ###
