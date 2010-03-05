@@ -30,11 +30,28 @@
 */
 
 #ifndef TEEM_ENDIAN
-#  error TEEM_ENDIAN not defined, see architecture-specific .mk file or check compilation options
-#elif TEEM_ENDIAN == 1234
-#  /* okay, its little endian */
-#elif TEEM_ENDIAN == 4321
-#  /* okay, its big endian */
+
+/* what byte order */
+/* All compilers that support Mac OS X define either __BIG_ENDIAN__ or
+__LITTLE_ENDIAN__ to match the endianness of the architecture being
+compiled for. This is not necessarily the same as the architecture of
+the machine doing the building. In order to support Universal Binaries on
+Mac OS X, we prefer those defines to decide the endianness.
+On other platform, we use the result of the TRY_RUN. */
+#if !defined(__APPLE__)
+#if @CMAKE_WORDS_BIGENDIAN@
+#define TEEM_ENDIAN 4321
+#else
+#define TEEM_ENDIAN 1234
+#endif
+#else
+#if defined(__BIG_ENDIAN__)
+#define TEEM_ENDIAN 4321
+#else
+#define TEEM_ENDIAN 1234
+#endif
+#endif
+
 #else
 #  error TEEM_ENDIAN not set to 1234 (little endian) or 4321 (big endian), see architecture-specific .mk file or check compilation options
 #endif
