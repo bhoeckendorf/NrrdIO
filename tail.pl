@@ -30,34 +30,8 @@
 # some other hacks
 #
 
-if (exists $ENV{"ITK_NRRDIO"}) {
-    $ITK = 1;
-} else {
-    $ITK = 0;
-}
-
-$printing = 1;
+$printing = 0;
 while (<>) {
-    $printing = 0 if (m/BEGIN non-NrrdIO/);
-    s|#include "air.h"|#include "NrrdIO.h"|g;
-    s|#include "biff.h"|#include "NrrdIO.h"|g;
-    s|#include "nrrd.h"|#include "NrrdIO.h"|g;
-    s|#include <teem(.*)>|#include "teem$1"|g;
-    if ($ITK) {
-	s|\/\* NrrdIO-hack-000 \*\/|\/\* THE FOLLOWING INCLUDE IS ONLY FOR THE ITK DISTRIBUTION.\n   This header mangles the symbols in the NrrdIO library, preventing\n   conflicts in applications linked against two versions of NrrdIO. \*\/\n#include "itk_NrrdIO_mangle.h"|g;
-    } else {
-	s|\/\* NrrdIO-hack-000 \*\/||g;
-    }
-    s|\/\* NrrdIO-hack-001 \*\/|#define TEEM_BUILD 1|g;
-    s|.* \/\* NrrdIO-hack-002 \*\/|#if 1|g;
-    s|.* \/\* NrrdIO-hack-003 \*\/|int nrrdStateVerboseIO = 0;|g;
-    if ($ITK) {
-        s|.* \/\* NrrdIO-hack-004 \*\/|#include "itk_zlib.h"|g;
-    }
-    s|AIR_EXPORT|NRRDIO_EXPORT|g;
-    s|BIFF_EXPORT|NRRDIO_EXPORT|g;
-    s|NRRD_EXPORT|NRRDIO_EXPORT|g;
-
     print if $printing;
-    $printing = 1 if (m/END non-NrrdIO/);
+    $printing = 1 if (m/^\*\//);
 }
