@@ -1,5 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -472,26 +473,26 @@ NRRDIO_EXPORT void airMopDebug(airArray *arr);
 #define AIR_CAST(t, v) ((t)(v))
 
 /*
-******** AIR_CALLOC
+******** AIR_MALLOC, AIR_CALLOC
 **
-** slightly simpler wrapper around cast and calloc
+** slightly simpler wrapper around cast and malloc/calloc
 **
 ** HEY note that "T" is not guarded by parentheses in its first usage,
 ** as arguments in Teem macros normally are
 */
+#define AIR_MALLOC(N, T) (T*)(malloc((N)*sizeof(T)))
 #define AIR_CALLOC(N, T) (T*)(calloc((N), sizeof(T)))
 
 /*
 ******** AIR_ENDIAN, AIR_QNANHIBIT, AIR_DIO
 **
-** These reflect particulars of hardware which we're running on.
-** The reason to have these in addition to TEEM_ENDIAN, TEEM_DIO, etc.,
-** is that those are not by default defined for every source-file
-** compilation: the Teem library has to define NEED_ENDIAN, NEED_DIO, etc,
-** and these in turn generate appropriate compile command-line flags
-** by Common.mk. By having these defined here, they become available
-** to anyone who simply links against the air library (and includes air.h),
-** with no command-line flags required, and no usage of Common.mk required.
+** These reflect particulars of hardware which we're running on, as do
+** TEEM_ENDIAN, TEEM_DIO, etc.  The difference is that TEEM_ENDIAN etc
+** are set (by teem/src/GNUmakefile) to pass architecture-specific
+** information into compilation of source files (this is triggered by
+** setting $(L).NEED_ENDIAN in the per-library GNUmakefile). The point
+** of AIR_ENDIAN etc is to make this information externally available,
+** to anyone linking against libair (or libteem) and including air.h.
 */
 #define AIR_ENDIAN (airMyEndian)
 #define AIR_QNANHIBIT (airMyQNaNHiBit)
@@ -829,6 +830,8 @@ extern "C" {
 #define NRRD_EXT_TEXT   ".txt"
 #define NRRD_EXT_EPS    ".eps"
 
+/* HEY: should this be renamed -> MAXNUM ? Would be more consistent
+   with other teem #define names */
 #define NRRD_KERNEL_PARMS_NUM 8    /* max # arguments to a kernel-
                                       this is weird: it isn't the max
                                       of any of the NrrdKernels
@@ -978,9 +981,10 @@ enum {
   nrrdBoundaryWeight,   /* 4: normalize the weighting on the existing samples;
                            ONLY sensible for a strictly positive kernel
                            which integrates to unity (as in blurring) */
+  nrrdBoundaryMirror,   /* 5: mirror folding */
   nrrdBoundaryLast
 };
-#define NRRD_BOUNDARY_MAX  4
+#define NRRD_BOUNDARY_MAX  5
 
 /*
 ******** nrrdType* enum
@@ -1523,15 +1527,21 @@ do {                                           \
 ** and dimension "dim", calculates the linear index, and stores it in
 ** "I".
 */
-#define NRRD_INDEX_GEN(I, coord, size, dim)   \
-do {                                          \
-  int d;                                      \
-  for (d=(dim)-1, (I)=(coord)[d--];           \
-       d >= 0;                                \
-       d--) {                                 \
-    (I) = (coord)[d] + (size)[d]*(I);         \
-  }                                           \
-} while (0)
+#define NRRD_INDEX_GEN(I, coord, size, dim)     \
+{                                               \
+  int d;                                        \
+  d = (dim) - 1;                                \
+  if ((d) >= 0) {                               \
+    (I) = (coord)[d];                           \
+    d--;                                        \
+    while (d >= 0) {                            \
+      (I) = (coord)[d] + (size)[d] * (I);       \
+      d--;                                      \
+    }                                           \
+  } else {                                      \
+    (I) = 0;                                    \
+  }                                             \
+}
 
 /*
 ******** NRRD_COORD_GEN
@@ -1895,6 +1905,9 @@ typedef struct NrrdIoState_t {
                                datafiles).  Warning: can result in broken
                                noncomformant files.
                                (be careful with this) */
+    skipFormatURL,          /* if non-zero for NRRD format ON WRITE:
+                               skip the comment lines that document where
+                               to find the NRRD file format specs */
     keepNrrdDataFileOpen,   /* ON READ: when there is only a single dataFile,
                                don't close nio->dataFile when
                                you otherwise would, when reading the
@@ -2073,7 +2086,11 @@ NRRDIO_EXPORT void nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX],
                                    const double vec[NRRD_SPACE_DIM_MAX]);
 NRRDIO_EXPORT double nrrdSpaceVecNorm(int sdim,
                                     const double vec[NRRD_SPACE_DIM_MAX]);
+NRRDIO_EXPORT int nrrdSpaceVecExists(int sdim,
+                                   double vec[NRRD_SPACE_DIM_MAX]);
 NRRDIO_EXPORT void nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
+NRRDIO_EXPORT void nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]);
+NRRDIO_EXPORT void nrrdZeroSet(Nrrd *nout);
 
 /******** comments related */
 /* comment.c */

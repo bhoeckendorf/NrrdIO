@@ -1,5 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -25,6 +26,8 @@
 #include "NrrdIO.h"
 #include "privateNrrd.h"
 
+static FILE *_fileSave = NULL;
+
 int
 _nrrdEncodingAscii_available(void) {
 
@@ -36,11 +39,13 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
                         Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingAscii_read";
   char numbStr[AIR_STRLEN_HUGE];  /* HEY: fix this */
+  char *nstr;
   size_t I;
   char *data;
   int tmp;
 
   AIR_UNUSED(nio);
+  _fileSave = file;
   if (nrrdTypeBlock == nrrd->type) {
     biffAddf(NRRD, "%s: can't read nrrd type %s from %s", me,
              airEnumStr(nrrdType, nrrdTypeBlock),
@@ -48,32 +53,55 @@ _nrrdEncodingAscii_read(FILE *file, void *_data, size_t elNum,
     return 1;
   }
   data = (char*)_data;
-  for (I=0; I<elNum; I++) {
+  I = 0;
+  while (I < elNum) {
+    /* HEY: we can easily suffer here from a standard buffer overflow problem;
+       this was a source of a mysterious unu crash:
+         echo "0 0 0 0 1 0 0 0 0" \
+          | unu reshape -s 9 1 1 \
+          | unu pad -min 0 0 0 -max 8 8 8 \
+          | unu make -s 9 9 9 -t float -e ascii -ls 9 \
+            -spc LPS -orig "(0,0,0)" -dirs "(1,0,0) (0,1,0) (0,0,1)"
+       This particular case is resolved by changing AIR_STRLEN_HUGE
+       to AIR_STRLEN_HUGE*100, but the general problem remains.  This
+       motivated adding the memory corruption test; sadly once that has
+       happened biffAddf also crashed */
     if (1 != fscanf(file, "%s", numbStr)) {
       biffAddf(NRRD, "%s: couldn't parse element " _AIR_SIZE_T_CNV
                " of " _AIR_SIZE_T_CNV, me, I+1, elNum);
       return 1;
     }
+    if (file != _fileSave) {
+      fprintf(stderr, "%s: sorry, memory corruption detected, bye.\n", me);
+      exit(1);
+    }
+    if (!strcmp(",", numbStr)) {
+      /* its an isolated comma, not a value, pass over this */
+      continue;
+    }
+    /* get past any commas prefixing a number (without space) */
+    nstr = numbStr + strspn(numbStr, ",");
     if (nrrd->type >= nrrdTypeInt) {
       /* sscanf supports putting value directly into this type */
-      if (1 != airSingleSscanf(numbStr, nrrdTypePrintfStr[nrrd->type], 
+      if (1 != airSingleSscanf(nstr, nrrdTypePrintfStr[nrrd->type], 
                                (void*)(data + I*nrrdElementSize(nrrd)))) {
-        biffAddf(NRRD, "%s: couln't parse %s " _AIR_SIZE_T_CNV
+        biffAddf(NRRD, "%s: couldn't parse %s " _AIR_SIZE_T_CNV
                  " of " _AIR_SIZE_T_CNV " (\"%s\")", me,
                  airEnumStr(nrrdType, nrrd->type),
-                 I+1, elNum, numbStr);
+                 I+1, elNum, nstr);
         return 1;
       }
     } else {
       /* sscanf value into an int first */
-      if (1 != airSingleSscanf(numbStr, "%d", &tmp)) {
-        biffAddf(NRRD, "%s: couln't parse element " _AIR_SIZE_T_CNV
+      if (1 != airSingleSscanf(nstr, "%d", &tmp)) {
+        biffAddf(NRRD, "%s: couldn't parse element " _AIR_SIZE_T_CNV
                  " of " _AIR_SIZE_T_CNV " (\"%s\")",
-                 me, I+1, elNum, numbStr);
+                 me, I+1, elNum, nstr);
         return 1;
       }
       nrrdIInsert[nrrd->type](data, I, tmp);
     }
+    I++;
   }
   
   return 0;

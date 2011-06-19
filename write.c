@@ -1,5 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -219,7 +220,7 @@ _nrrdStrcatSpaceVector(char *str, int spaceDim,
     strcat(str, "(");
     for (dd=0; dd<spaceDim; dd++) {
       strcpy(buff, "");
-      airSinglePrintf(NULL, buff, "%g", val[dd]);
+      airSinglePrintf(NULL, buff, "%.17g", val[dd]);
       strcat(str, buff);
       sprintf(buff, "%s", dd < spaceDim-1 ? "," : ")");
       strcat(str, buff);
@@ -477,7 +478,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     *strP = (char *)calloc(fslen + nrrd->dim*(doubleStrlen + 1), sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
-      airSinglePrintf(NULL, buff, " %g", nrrd->axis[ii].spacing);
+      airSinglePrintf(NULL, buff, " %.17g", nrrd->axis[ii].spacing);
       strcat(*strP, buff);
     }
     break;
@@ -485,7 +486,7 @@ _nrrdSprintFieldInfo(char **strP, char *prefix,
     *strP = (char *)calloc(fslen + nrrd->dim*(doubleStrlen + 1), sizeof(char));
     sprintf(*strP, "%s%s:", prefix, fs);
     for (ii=0; ii<nrrd->dim; ii++) {
-      airSinglePrintf(NULL, buff, " %g", nrrd->axis[ii].thickness);
+      airSinglePrintf(NULL, buff, " %.17g", nrrd->axis[ii].thickness);
       strcat(*strP, buff);
     }
     break;
