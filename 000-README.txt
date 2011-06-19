@@ -3,7 +3,8 @@ License -------------------------------------------------------------------
 ---------------------------------------------------------------------------
 
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2005  Gordon Kindlmann
+  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
   This software is provided 'as-is', without any express or implied
@@ -28,12 +29,13 @@ License -------------------------------------------------------------------
 General information -------------------------------------------------------
 ---------------------------------------------------------------------------
 
-** NOTE: These source files have been copied and/or modified from Teem,
-** Gordon Kindlmann's research software; <http://teem.sourceforge.net>.
-** Teem is licensed under the GNU Lesser Public License. The
-** non-copyleft licensing defined above applies to only the source
-** files in the NrrdIO distribution, and not to any files in the Teem
-** distribution.
+** NOTE: These source files have been copied and/or modified from
+** Teem, Gordon Kindlmann's research software; <http://teem.sf.net>.
+** Teem is licensed under a weakened GNU Lesser Public License (the
+** weakening is to remove burdens on those releasing binaries that
+** statically link against Teem) . The non-copyleft licensing defined
+** above applies to only the source files in the NrrdIO distribution,
+** and not to any files in the Teem distribution.
 
 NrrdIO is a modified and highly abbreviated version of the Teem. NrrdIO
 contains only the source files (or portions thereof) required for
