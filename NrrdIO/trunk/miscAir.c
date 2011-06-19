@@ -1,5 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -44,7 +45,7 @@
 const char *
 airTeemVersion = TEEM_VERSION_STRING;
 const char *
-airTeemReleaseDate = "late 2009 or early 2010";
+airTeemReleaseDate = "maybe in 2011";
 
 double
 _airSanityHelper(double val) {

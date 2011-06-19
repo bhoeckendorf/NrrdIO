@@ -1,5 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -154,8 +155,8 @@ extern void _nrrdTraverse(Nrrd *nrrd);
 #if TEEM_VTK_MANGLE
 #include "vtk_zlib_mangle.h"
 #endif
-#include <zlib.h> 
-   
+#include <zlib.h> /* NrrdIO-hack-004 */
+
 /* gzio.c */
 extern gzFile _nrrdGzOpen(FILE* fd, const char *mode);
 extern int _nrrdGzClose(gzFile file);

@@ -1,5 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -46,7 +47,8 @@ typedef union {
 unsigned int
 _nrrdHeaderStringOneLineStrlen(NrrdIoState *nio) {
 
-  return strcspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep);
+  return AIR_CAST(unsigned int, 
+                  strcspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep));
 }
 
 /*
@@ -60,7 +62,8 @@ _nrrdHeaderStringOneLine(NrrdIoState *nio) {
   strncpy(nio->line, nio->headerStringRead + nio->headerStrpos, len1);
   nio->line[len1] = '\0';
   nio->headerStrpos += len1;
-  len2 = strspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep);
+  len2 = AIR_CAST(unsigned int, 
+                  strspn(nio->headerStringRead + nio->headerStrpos, _nrrdLineSep));
   nio->headerStrpos += len2;
   return len1;
 }
@@ -307,12 +310,16 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
               me, (int)ftell(dataFile));
     }
   } else {
-    for (bi=1; bi<=nio->byteSkip; bi++) {
-      skipRet = fgetc(dataFile);
-      if (EOF == skipRet) {
-        biffAddf(NRRD, "%s: hit EOF skipping byte %ld of %ld",
-                 me, bi, nio->byteSkip);
-        return 1;
+    if (-1==fseek(dataFile, nio->byteSkip, SEEK_CUR)) {
+      /* fseek failed, perhaps because we're reading stdin, so
+         we revert to consuming the input one byte at a time */
+      for (bi=1; bi<=nio->byteSkip; bi++) {
+        skipRet = fgetc(dataFile);
+        if (EOF == skipRet) {
+          biffAddf(NRRD, "%s: hit EOF skipping byte %ld of %ld",
+                   me, bi, nio->byteSkip);
+          return 1;
+        }
       }
     }
   }

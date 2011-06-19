@@ -1,5 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -81,20 +82,20 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
     while(ret < elementNum) {
       remainder = elementNum-ret;
       if (remainder < maxChunkSize) {
-	chunkSize = remainder;
+        chunkSize = remainder;
       } else {
-	chunkSize = maxChunkSize;
+        chunkSize = maxChunkSize;
       }
       retTmp = 
-	fread(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
+        fread(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
       ret += retTmp;
       if (retTmp != chunkSize) {
-	biffAddf(NRRD, "%s: fread got read only "
+        biffAddf(NRRD, "%s: fread got read only "
                  _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
                  _AIR_SIZE_T_CNV " (%g%% of expected)", me,
                  ret, nrrdElementSize(nrrd), elementNum,
                  100.0*ret/elementNum);
-	return 1;
+        return 1;
       }
     }
     /* HEY: Here's the old version of the above code. 
@@ -177,20 +178,20 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
     while(ret < elementNum) {
       remainder = elementNum-ret;
       if (remainder < maxChunkSize) {
-	chunkSize = remainder;
+        chunkSize = remainder;
       } else {
-	chunkSize = maxChunkSize;
+        chunkSize = maxChunkSize;
       }
       retTmp = 
-	fwrite(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
+        fwrite(&(data_c[ret*elementSize]), elementSize, chunkSize, file);
       ret += retTmp;
       if (retTmp != chunkSize) {
-	biffAddf(NRRD, "%s: fwrite wrote only "
+        biffAddf(NRRD, "%s: fwrite wrote only "
                  _AIR_SIZE_T_CNV " " _AIR_SIZE_T_CNV "-sized things, not "
                  _AIR_SIZE_T_CNV " (%g%% of expected)", me,
                  ret, nrrdElementSize(nrrd), elementNum,
                  100.0*ret/elementNum);
-	return 1;
+        return 1;
       }
     }
     /* HEY: Here's the old version of the above code.

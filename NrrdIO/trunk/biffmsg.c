@@ -1,5 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
+  Copyright (C) 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -143,7 +144,7 @@ biffMsgLineLenMax(const biffMsg *msg) {
   }
   maxlen = 0;
   for (ii=0; ii<msg->errNum; ii++) {
-    len = strlen(msg->err[ii]) + strlen(msg->key) + strlen("[] \n");
+    len = AIR_CAST(unsigned int, strlen(msg->err[ii]) + strlen(msg->key) + strlen("[] \n"));
     maxlen = AIR_MAX(maxlen, len);
   }
   return maxlen;
@@ -231,7 +232,7 @@ biffMsgStrlen(const biffMsg *msg) {
 
   len = 0;
   for (ii=0; ii<msg->errNum; ii++) {
-    len += strlen(msg->key) + strlen(msg->err[ii]) + strlen("[] \n");
+    len += AIR_CAST(unsigned int, strlen(msg->key) + strlen(msg->err[ii]) + strlen("[] \n"));
   }
   return len+1;
 }
