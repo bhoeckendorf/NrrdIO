@@ -1,5 +1,6 @@
 #  
 # NrrdIO: stand-alone code for basic nrrd functionality
+# Copyright (C) 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -58,7 +59,7 @@ $(warning *)\
 $(warning * Environment variable TEEM_SRC_ROOT not set. This)\
 $(warning * needs to be set to the directory containing the)\
 $(warning * src and include directories of the Teem source)\
-$(warning * distribution.)\
+$(warning * distribution (rather than a Teem installation))\
 $(warning *)\
 $(error Make quitting))
 
@@ -102,11 +103,11 @@ all: $(TEEM_HDRS) $(NEED_SRCS) $(NEED_PRIV_HDRS) NrrdIO.h NrrdIO_Srcs.txt
 ### teem headers in $(NEED_HDRS), but we do need to "unteem" them.
 ###
 $(NEED_PUB_HDRS):
-	tail --lines=+22 $(TEEM_SRC_ROOT)/src/$@ \
+	perl tail.pl < $(TEEM_SRC_ROOT)/src/$@ \
          | perl unteem.pl \
          | grep -v HAS_BEEN_INCLUDED > $(notdir $@)
 $(NEED_PRIV_HDRS):
-	tail --lines=+22 $(TEEM_SRC_ROOT)/src/$@ \
+	perl tail.pl < $(TEEM_SRC_ROOT)/src/$@ \
          | cat preamble.c - \
          | perl unteem.pl \
          | grep -v HAS_BEEN_INCLUDED > $(notdir $@)
@@ -123,7 +124,7 @@ NrrdIO_Srcs.txt:
 ### The teem*.h headers: we need only change the pre-amble here
 ###
 teem/%.h: 
-	tail --lines=+22 $(TEEM_SRC_ROOT)/include/$(notdir $@) \
+	perl tail.pl < $(TEEM_SRC_ROOT)/include/$(notdir $@) \
           | cat preamble.c - > $(notdir $@)
 
 ### The rest: by design, these targets have the library names as part
@@ -131,7 +132,7 @@ teem/%.h:
 ### source file without any VPATH games
 ###
 %.h %.c:
-	tail --lines=+22 $(TEEM_SRC_ROOT)/src/$@ \
+	perl tail.pl < $(TEEM_SRC_ROOT)/src/$@ \
           | cat preamble.c - \
           | perl unteem.pl \
           | grep -v HAS_BEEN_INCLUDED > $(notdir $@)
