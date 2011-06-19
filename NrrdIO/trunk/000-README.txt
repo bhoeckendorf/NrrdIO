@@ -101,8 +101,8 @@ pre-GNUmakefile: how NrrdIO sources are created from the Teem
 sources. Requires that TEEM_SRC_ROOT be set, and uses the following
 two files.
 
-unteem.pl: used to make small modifications to the source files to
-make them less Teem-dependent.
+tail.pl, unteem.pl: used to make small modifications to the source files
+to convert them from Teem to NrrdIO sources
 
 preamble.c: the preamble describing the non-copyleft licensing of
 NrrdIO.
