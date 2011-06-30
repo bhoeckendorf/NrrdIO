@@ -24,10 +24,9 @@
 #
 
 #
-# This helps in converting teem source files into NrrdIO source files,
-# by changing the way #includes are done, and by excluding the lines
-# delimited by "BEGIN non-NrrdIO" and "END non-NrrdIO", as well as doing
-# some other hacks
+# This simply removes the lines up to and including a line 
+# containing nothing but "*/", which is presumably the end
+# of the comment block at the top of a Teem .c or .h file
 #
 
 $printing = 0;
