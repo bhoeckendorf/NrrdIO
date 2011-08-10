@@ -28,6 +28,8 @@
 
 #include <limits.h>
 
+/* The "/ *Teem:" (without space) comments in here are an experiment */
+
 const char *
 nrrdBiffKey = "nrrd";
 
@@ -398,9 +400,9 @@ _nrrdContentGet(const Nrrd *nin) {
   static const char me[]="_nrrdContentGet";
   char *ret;
   
-  ret = ((nin && nin->content) ? 
-         airStrdup(nin->content) : 
-         airStrdup(nrrdStateUnknownContent));
+  ret = ((nin && nin->content)
+         ? airStrdup(nin->content)
+         : airStrdup(nrrdStateUnknownContent));
   if (!ret) {
     fprintf(stderr, "%s: PANIC: content strdup failed!\n", me);
     exit(1);
@@ -516,16 +518,16 @@ nrrdContentSet_va(Nrrd *nout, const char *func,
 void
 nrrdDescribe(FILE *file, const Nrrd *nrrd) {
   unsigned int ai;
+  char stmp[AIR_STRLEN_SMALL];
 
   if (file && nrrd) {
     fprintf(file, "Nrrd at 0x%p:\n", (void*)nrrd);
-    fprintf(file, "Data at 0x%p is " _AIR_SIZE_T_CNV
-            " elements of type %s.\n",
-            nrrd->data, nrrdElementNumber(nrrd), 
+    fprintf(file, "Data at 0x%p is %s elements of type %s.\n", nrrd->data,
+            airSprintSize_t(stmp, nrrdElementNumber(nrrd)),
             airEnumStr(nrrdType, nrrd->type));
     if (nrrdTypeBlock == nrrd->type) {
-      fprintf(file, "The blocks have size " _AIR_SIZE_T_CNV "\n",
-              nrrd->blockSize);
+      fprintf(file, "The blocks have size %s\n",
+              airSprintSize_t(stmp, nrrd->blockSize));
     }
     if (airStrlen(nrrd->content)) {
       fprintf(file, "Content = \"%s\"\n", nrrd->content);
@@ -537,9 +539,9 @@ nrrdDescribe(FILE *file, const Nrrd *nrrd) {
       } else {
         fprintf(file, "%d: ", ai);
       }
-      fprintf(file, "%s-centered, size=" _AIR_SIZE_T_CNV ", ",
+      fprintf(file, "%s-centered, size=%s, ",
               airEnumStr(nrrdCenter, nrrd->axis[ai].center),
-              nrrd->axis[ai].size);
+              airSprintSize_t(stmp, nrrd->axis[ai].size));
       airSinglePrintf(file, NULL, "spacing=%lg, \n", nrrd->axis[ai].spacing);
       airSinglePrintf(file, NULL, "thickness=%lg, \n",
                       nrrd->axis[ai].thickness);
@@ -738,19 +740,19 @@ _nrrdFieldCheck_type(const Nrrd *nrrd, int useBiff) {
 int
 _nrrdFieldCheck_block_size(const Nrrd *nrrd, int useBiff) {
   static const char me[]="_nrrdFieldCheck_block_size";
+  char stmp[AIR_STRLEN_SMALL];
   
   if (nrrdTypeBlock == nrrd->type && (!(0 < nrrd->blockSize)) ) {
     biffMaybeAddf(useBiff, NRRD,
-                  "%s: type is %s but nrrd->blockSize (" 
-                  _AIR_SIZE_T_CNV ") invalid", me,
+                  "%s: type is %s but nrrd->blockSize (%s) invalid", me,
                   airEnumStr(nrrdType, nrrdTypeBlock),
-                  nrrd->blockSize); return 1;
+                  airSprintSize_t(stmp, nrrd->blockSize)); return 1;
   }
   if (nrrdTypeBlock != nrrd->type && (0 < nrrd->blockSize)) {
     biffMaybeAddf(useBiff, NRRD,
-                  "%s: type is %s (not block) but blockSize is "
-                  _AIR_SIZE_T_CNV, me,
-                  airEnumStr(nrrdType, nrrd->type), nrrd->blockSize);
+                  "%s: type is %s (not block) but blockSize is %s", me,
+                  airEnumStr(nrrdType, nrrd->type),
+                  airSprintSize_t(stmp, nrrd->blockSize));
     return 1;
   }
   return 0;
@@ -935,10 +937,11 @@ _nrrdFieldCheck_kinds(const Nrrd *nrrd, int useBiff) {
     }
     wantLen = nrrdKindSize(val[ai]);
     if (wantLen && wantLen != nrrd->axis[ai].size) {
+      char stmp[AIR_STRLEN_SMALL];
       biffMaybeAddf(useBiff, NRRD,
-                    "%s: axis %d kind %s requires size %d, but have "
-                    _AIR_SIZE_T_CNV, me, ai, airEnumStr(nrrdKind, val[ai]),
-                    wantLen, nrrd->axis[ai].size);
+                    "%s: axis %d kind %s requires size %d, but have %s", me,
+                    ai, airEnumStr(nrrdKind, val[ai]), wantLen,
+                    airSprintSize_t(stmp, nrrd->axis[ai].size));
       return 1;
     }
   }
@@ -1126,7 +1129,7 @@ _nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff) {
 ** but that is really only for testing sufficiency of information 
 ** required to do the data reading.
 */
-int
+int /*Teem: biff if (ret) */
 nrrdCheck(const Nrrd *nrrd) {
   static const char me[]="nrrdCheck";
 
@@ -1147,10 +1150,11 @@ nrrdCheck(const Nrrd *nrrd) {
 ** the same size, so that if they aren't, some descriptive (error) message
 ** can be generated according to useBiff
 */
-int
+int /*Teem: biff?2 if (!ret) */
 nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff) {
   static const char me[]="nrrdSameSize";
   unsigned int ai;
+  char stmp[2][AIR_STRLEN_SMALL];
 
   if (!(n1 && n2)) {
     biffMaybeAddf(useBiff, NRRD, "%s: got NULL pointer", me); 
@@ -1163,9 +1167,10 @@ nrrdSameSize(const Nrrd *n1, const Nrrd *n2, int useBiff) {
   }
   for (ai=0; ai<n1->dim; ai++) {
     if (n1->axis[ai].size != n2->axis[ai].size) {
-      biffMaybeAddf(useBiff, NRRD, "%s: n1->axis[%d].size (" _AIR_SIZE_T_CNV
-                    ") != n2->axis[%d].size (" _AIR_SIZE_T_CNV ")", 
-                    me, ai, n1->axis[ai].size, ai, n2->axis[ai].size); 
+      biffMaybeAddf(useBiff, NRRD, "%s: n1->axis[%d].size (%s) "
+                    "!= n2->axis[%d].size (%s)", me, ai,
+                    airSprintSize_t(stmp[0], n1->axis[ai].size), ai,
+                    airSprintSize_t(stmp[1], n2->axis[ai].size));
       return 0;
     }
   }
@@ -1352,7 +1357,7 @@ _nrrdCheckEnums(void) {
 **
 ** biffMsg *msg is allowed to be NULL
 */
-int
+int /*Teem: biff if (!ret) */
 nrrdSanity(void) {
   static const char me[]="nrrdSanity";
   int aret, type;
@@ -1372,11 +1377,6 @@ nrrdSanity(void) {
   
   aret = airSanity();
   if (aret != airInsane_not) {
-    if (airInsane_32Bit == aret) {
-      biffAddf(NRRD, "%s: (sizeof(size_t) == %u, not %u)", me, 
-               AIR_CAST(unsigned int, sizeof(size_t)),
-               AIR_32BIT ? 4 : 8);
-    }
     biffAddf(NRRD, "%s: airSanity() failed: %s", me,
              airInsaneErr(aret));
     return 0;

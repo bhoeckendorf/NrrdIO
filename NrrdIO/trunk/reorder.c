@@ -343,8 +343,9 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   len = AIR_CAST(unsigned int, nin->axis[axis].size);
   for (ai=0; ai<len; ai++) {
     if (!( perm[ai] < len )) {
-      biffAddf(NRRD, "%s: perm[%d] (" _AIR_SIZE_T_CNV
-               ") outside valid range [0,%d]", me, ai, perm[ai], len-1);
+      char stmp[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: perm[%d] (%s) outside valid range [0,%d]", me, ai,
+               airSprintSize_t(stmp, perm[ai]), len-1);
       return 1;
     }
   }
@@ -410,7 +411,8 @@ nrrdShuffle(Nrrd *nout, const Nrrd *nin, unsigned int axis,
   if (len <= LONGEST_INTERESTING_AXIS) {
     strcpy(buff1, "");
     for (ai=0; ai<len; ai++) {
-      sprintf(buff2, "%s" _AIR_SIZE_T_CNV, (ai ? "," : ""), perm[ai]);
+      char stmp[AIR_STRLEN_SMALL];
+      sprintf(buff2, "%s%s", (ai ? "," : ""), airSprintSize_t(stmp, perm[ai]));
       strcat(buff1, buff2);
     }
     if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {

@@ -30,6 +30,8 @@
 #include <bzlib.h>
 #endif
 
+/* The "/ *Teem:" (without space) comments in here are an experiment */
+
 char _nrrdRelativePathFlag[] = "./";
 char _nrrdFieldSep[] = " \t";
 char _nrrdLineSep[] = "\r\n";
@@ -221,9 +223,10 @@ _nrrdCalloc(Nrrd *nrrd, NrrdIoState *nio, FILE *file) {
       nrrd->data = malloc(needDataSize);
     }
     if (!nrrd->data) {
-      biffAddf(NRRD, "%s: couldn't allocate " _AIR_SIZE_T_CNV 
-               " things of size " _AIR_SIZE_T_CNV,
-               me, nrrdElementNumber(nrrd), nrrdElementSize(nrrd));
+      char stmp1[AIR_STRLEN_SMALL], stmp2[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: couldn't allocate %s things of size %s", me,
+               airSprintSize_t(stmp1, nrrdElementNumber(nrrd)),
+               airSprintSize_t(stmp2, nrrdElementSize(nrrd)));
       return 1;
     }
   }
@@ -301,8 +304,9 @@ nrrdByteSkip(FILE *dataFile, Nrrd *nrrd, NrrdIoState *nio) {
     bsize *= nrrdElementSize(nrrd);
     backHack = -nio->byteSkip - 1;
     if (fseek(dataFile, -((long)(bsize + backHack)), SEEK_END)) {
-      biffAddf(NRRD, "%s: failed to fseek(dataFile, " _AIR_SIZE_T_CNV
-               ", SEEK_END)", me, bsize);
+      char stmp[AIR_STRLEN_SMALL];
+      biffAddf(NRRD, "%s: failed to fseek(dataFile, %s, SEEK_END)", me,
+               airSprintSize_t(stmp, bsize));
       return 1;      
     }
     if (nrrdStateVerboseIO >= 2) {
@@ -413,8 +417,16 @@ _nrrdRead(Nrrd *nrrd, FILE *file, const char *string, NrrdIoState *_nio) {
     }
   }
   if (nrrdFormatUnknown == nio->format) {
-    biffAddf(NRRD, "%s: couldn't parse \"%s\" as magic or beginning of "
-             "any recognized format", me, nio->line);
+    char linestart[AIR_STRLEN_SMALL], stmp[AIR_STRLEN_SMALL];
+    airStrcpy(linestart, AIR_STRLEN_SMALL, nio->line);
+    if (strlen(linestart) != strlen(nio->line)) {
+      biffAddf(NRRD, "%s: couldn't parse (length %s) line starting "
+               "with \"%s\" as magic or beginning of any recognized format",
+               me, airSprintSize_t(stmp, strlen(nio->line)), linestart);
+    } else {
+      biffAddf(NRRD, "%s: couldn't parse \"%s\" as magic or beginning "
+               "of any recognized format", me, nio->line);
+    }
     airMopError(mop); return 1;
   }
   if (string && nrrdFormatNRRD != nio->format) {
@@ -495,13 +507,15 @@ nrrdStringRead(Nrrd *nrrd, const char *string, NrrdIoState *_nio) {
 /*
 ** _nrrdSplitName()
 **
-** splits a file name into a path and a base filename.  The directory
-** seperator is assumed to be '/'.  The division between the path
-** and the base is the last '/' in the file name.  The path is
-** everything prior to this, and base is everything after (so the
-** base does NOT start with '/').  If there is not a '/' in the name,
-** or if a '/' appears as the last character, then the path is set to
-** ".", and the name is copied into base.
+** splits a file name into a path and a base filename.  The path
+** separator is '/', but there is a hack (thanks Torsten Rohlfing)
+** which allows '\' to work on Windows.  The division between the path
+** and the base is the last path separator in the file name.  The path
+** is everything prior to this, and base is everything after (so the
+** base does NOT start with the path separator).  If there is not a
+** '/' in the name, or if a path separator appears as the last
+** character, then the path is set to ".", and the name is copied into
+** base.
 */
 void
 _nrrdSplitName(char **dirP, char **baseP, const char *name) {
@@ -514,6 +528,12 @@ _nrrdSplitName(char **dirP, char **baseP, const char *name) {
     *baseP = (char *)airFree(*baseP);
   }
   where = strrchr(name, '/');
+#ifdef _WIN32
+  /* Deal with Windows "\" path separators; thanks to Torsten Rohlfing */
+  if ( !where || (strrchr(name, '\\') > where) ) {
+    where = strrchr(name, '\\');
+  }
+#endif
   /* we found a valid break if the last directory character
      is somewhere in the string except the last character */
   if (where && airStrlen(where) > 1) {
@@ -599,7 +619,7 @@ I plan on shamelessly copying this, just like I shamelessly copied the
 ** sneakiness: returns 2 if the reason for problem was a failed fopen().
 ** 
 */
-int
+int /*Teem: biff if (ret) */
 nrrdLoad(Nrrd *nrrd, const char *filename, NrrdIoState *nio) {
   static const char me[]="nrrdLoad";
   FILE *file;

@@ -50,7 +50,7 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
     szOut[NRRD_DIM_MAX];
   unsigned int ai, outdim;
   int map[NRRD_DIM_MAX];
-  char *src, *dest;
+  char *src, *dest, stmp[2][AIR_STRLEN_SMALL];
 
   if (!(nin && nout)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -71,9 +71,9 @@ nrrdSlice(Nrrd *nout, const Nrrd *nin, unsigned int saxi, size_t pos) {
     return 1;
   }
   if (!( pos < nin->axis[saxi].size )) {
-    biffAddf(NRRD, "%s: position " _AIR_SIZE_T_CNV 
-             " out of bounds (0 to " _AIR_SIZE_T_CNV  ")", 
-             me, pos, nin->axis[saxi].size-1);
+    biffAddf(NRRD, "%s: position %s out of bounds (0 to %s)", me,
+             airSprintSize_t(stmp[0], pos),
+             airSprintSize_t(stmp[1], nin->axis[saxi].size-1));
     return 1;
   }
   /* this shouldn't actually be necessary .. */
@@ -173,8 +173,8 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
     szOut[NRRD_DIM_MAX],
     idxIn, idxOut,           /* linear indices for input and output */
     numLines;                /* number of scanlines in output nrrd */
-  char *dataIn, *dataOut;
-
+  char *dataIn, *dataOut, stmp[3][AIR_STRLEN_SMALL];
+  
   /* errors */
   if (!(nout && nin && min && max)) {
     biffAddf(NRRD, "%s: got NULL pointer", me);
@@ -186,16 +186,16 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   }
   for (ai=0; ai<nin->dim; ai++) {
     if (!(min[ai] <= max[ai])) {
-      biffAddf(NRRD, "%s: axis %d min (" _AIR_SIZE_T_CNV 
-               ") not <= max (" _AIR_SIZE_T_CNV ")", 
-               me, ai, min[ai], max[ai]);
+      biffAddf(NRRD, "%s: axis %d min (%s) not <= max (%s)", me, ai,
+               airSprintSize_t(stmp[0], min[ai]),
+               airSprintSize_t(stmp[1], max[ai]));
       return 1;
     }
     if (!( min[ai] < nin->axis[ai].size && max[ai] < nin->axis[ai].size )) {
-      biffAddf(NRRD, "%s: axis %d min (" _AIR_SIZE_T_CNV  
-               ") or max (" _AIR_SIZE_T_CNV  ") out of bounds [0," 
-               _AIR_SIZE_T_CNV  "]",
-               me, ai, min[ai], max[ai], nin->axis[ai].size-1);
+      biffAddf(NRRD, "%s: axis %d min (%s) or max (%s) out of bounds [0,%s]",
+               me, ai, airSprintSize_t(stmp[0], min[ai]),
+               airSprintSize_t(stmp[1], max[ai]),
+               airSprintSize_t(stmp[2], nin->axis[ai].size-1));
       return 1;
     }
   }
@@ -304,8 +304,9 @@ nrrdCrop(Nrrd *nout, const Nrrd *nin, size_t *min, size_t *max) {
   }
   strcpy(buff1, "");
   for (ai=0; ai<nin->dim; ai++) {
-    sprintf(buff2, "%s[" _AIR_SIZE_T_CNV  "," _AIR_SIZE_T_CNV  "]",
-            (ai ? "x" : ""), min[ai], max[ai]);
+    sprintf(buff2, "%s[%s,%s]", (ai ? "x" : ""),
+            airSprintSize_t(stmp[0], min[ai]),
+            airSprintSize_t(stmp[1], max[ai]));
     strcat(buff1, buff2);
   }
   if (nrrdContentSet_va(nout, func, nin, "%s", buff1)) {

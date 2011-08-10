@@ -24,7 +24,6 @@
 */
 
 #include "NrrdIO.h"
-#include "teem32bit.h"
 /* timer functions */
 #ifdef _WIN32
 #include <io.h>
@@ -153,7 +152,7 @@ airFclose(FILE *file) {
 ** To get fprintf behavior, pass "str" as NULL
 ** to get sprintf bahavior, pass "file" as NULL
 **
-** Someday I'll find/write a complete {f|s|}printf replacement ...
+** Someday I'll find/write a complete {f|s|}printf replacement 
 */
 int
 airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
@@ -177,7 +176,7 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
   isD = p3 || p4 || p5;
   /* the code here says "isF" and "isD" as if it means "is float" or 
      "is double".  It really should be "is2" or "is3", as in, 
-     "is 2-character conversion sequence, or "is 3-character..." */
+     "is 2-character conv. seq., or "is 3-character conv. seq." */
   if (isF) {
     conv = p0 ? p0 : (p1 ? p1 : p2);
   }
@@ -245,9 +244,58 @@ airSinglePrintf(FILE *file, char *str, const char *_fmt, ...) {
   return ret;
 }
 
-#if TEEM_32BIT == 1
-const int airMy32Bit = 1;
-#else
-const int airMy32Bit = 0;
-#endif
+/*
+******** airSprintSize_t
+**
+** sprints a single size_t to a given string, side-stepping
+** non-standardized format specifier confusion with printf
+*/
+char *
+airSprintSize_t(char _str[AIR_STRLEN_SMALL], size_t val) {
+  char str[AIR_STRLEN_SMALL];
+  unsigned int si;
+
+  if (!_str) {
+    return NULL;
+  }
+  si = AIR_STRLEN_SMALL-1;
+  str[si] = '\0';
+  do {
+    str[--si] = AIR_CAST(int, val % 10) + '0';
+    val /= 10;
+  } while (val);
+  strcpy(_str, str + si);
+  return _str;
+}
+
+/*
+******** airSprintPtrdiff_t
+**
+** sprints a single ptrdiff_t to a given string, side-stepping
+** non-standardized format specifier confusion with printf
+*/
+char *
+airSprintPtrdiff_t(char _str[AIR_STRLEN_SMALL], ptrdiff_t val) {
+  char str[AIR_STRLEN_SMALL];
+  unsigned int si;
+  int sign;
+
+  if (!_str) {
+    return NULL;
+  }
+  si = AIR_STRLEN_SMALL-1;
+  str[si] = '\0';
+  sign = (val < 0 ? -1 : 1);
+  do {
+    int dig;
+    dig = AIR_CAST(int, val % 10);
+    str[--si] = (dig > 0 ? dig + '0' : -dig + '0');
+    val /= 10;
+  } while (val);
+  if (-1 == sign) {
+    str[--si] = '-';
+  }
+  strcpy(_str, str + si);
+  return _str;
+}
 
