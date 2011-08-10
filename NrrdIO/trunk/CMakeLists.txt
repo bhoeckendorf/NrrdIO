@@ -40,7 +40,7 @@ formatNRRD.c encodingAscii.c formatPNG.c encodingBzip2.c
 formatPNM.c accessors.c encodingGzip.c formatText.c 
 array.c encodingHex.c formatVTK.c read.c arraysNrrd.c encodingRaw.c 
 gzio.c reorder.c write.c axis.c endianAir.c  keyvalue.c
-biffbiff.c endianNrrd.c methodsNrrd.c  sane.c enum.c
+biffbiff.c biffmsg.c endianNrrd.c methodsNrrd.c  sane.c enum.c
 miscAir.c simple.c )
 
 # Turn on TEEM_BUILD so that the proper dll export def's are 
@@ -71,9 +71,14 @@ ENDIF(QNANHIBIT)
   ADD_DEFINITIONS(-DTEEM_DIO=0)
 #ENDIF(USE_DIRECTIO)
 
-ADD_LIBRARY(NrrdIO ${nrrdio_SRCS} )
-TARGET_LINK_LIBRARIES(NrrdIO ${ITK_ZLIB_LIBRARIES} )
+# Possibly turn on usage of zlib compression (requires linking with libz)
+# (i.e., programs compiled with ITKNrrdIO must also be compiled with zlib)
+#ADD_DEFINITIONS(-DTEEM_ZLIB=1)
 
-INSTALL_TARGETS(/lib/InsightToolkit ITKNrrdIO)
-INSTALL_FILES(/include/InsightToolkit/Utilities/NrrdIO "(\\.h)$")
+ADD_LIBRARY(NrrdIO ${nrrdio_SRCS} )
+
+## These are ITK-specific
+#TARGET_LINK_LIBRARIES(NrrdIO ${ITK_ZLIB_LIBRARIES} )
+#INSTALL_TARGETS(/lib/InsightToolkit ITKNrrdIO)
+#INSTALL_FILES(/include/InsightToolkit/Utilities/NrrdIO "(\\.h)$")
 
