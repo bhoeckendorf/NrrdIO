@@ -24,6 +24,8 @@
 */
 
 #include "NrrdIO.h"
+#include "privateBiff.h"
+
 
 /* 
 ** with the Nov'09 re-write of biff, this sourcefile becomes the only
@@ -103,7 +105,7 @@ biffMsgAdd(biffMsg *msg, const char *err) {
 }
 
 void
-biffMsgAddVL(biffMsg *msg, const char *errfmt, va_list args) {
+_biffMsgAddVL(biffMsg *msg, const char *errfmt, va_list args) {
   char errstr[_HACK_STRLEN];
 
   vsprintf(errstr, errfmt, args);
@@ -116,7 +118,7 @@ biffMsgAddf(biffMsg *msg, const char *errfmt, ...) {
   va_list args;
 
   va_start(args, errfmt);
-  biffMsgAddVL(msg, errfmt, args);
+  _biffMsgAddVL(msg, errfmt, args);
   va_end(args);
   return;
 }
@@ -192,8 +194,8 @@ biffMsgMove(biffMsg *dest, biffMsg *src, const char *err) {
 }
 
 void
-biffMsgMoveVL(biffMsg *dest, biffMsg *src,
-              const char *errfmt, va_list args) {
+_biffMsgMoveVL(biffMsg *dest, biffMsg *src,
+               const char *errfmt, va_list args) {
   char errstr[_HACK_STRLEN];
   
   vsprintf(errstr, errfmt, args);
@@ -206,7 +208,7 @@ biffMsgMovef(biffMsg *dest, biffMsg *src, const char *errfmt, ...) {
   va_list args;
   
   va_start(args, errfmt);
-  biffMsgMoveVL(dest, src, errfmt, args);
+  _biffMsgMoveVL(dest, src, errfmt, args);
   va_end(args);
   return;
 }

@@ -31,6 +31,7 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <float.h>
+#include <stddef.h>      /* for ptrdiff_t */
 
 /*
 ******** TEEM_VERSION 
@@ -51,7 +52,8 @@
 #define TEEM_VERSION_MAJOR       1   /* must be 1 digit */
 #define TEEM_VERSION_MINOR      11   /* 1 or 2 digits */
 #define TEEM_VERSION_PATCH      00   /* 1 or 2 digits */
-#define TEEM_VERSION         11100   /* can be easily compared numerically */
+#define TEEM_VERSION         11100   /* must be 5 digits, to facilitate
+                                        easy numerical comparison */
 #define TEEM_VERSION_STRING "1.11.0" /* cannot be so easily compared */
 
 
@@ -74,64 +76,88 @@ extern "C" {
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
 typedef signed __int64 airLLong;
 typedef unsigned __int64 airULLong;
-#define AIR_LLONG_FMT "%I64d"
-#define AIR_ULLONG_FMT "%I64u"
-#define AIR_LLONG(x) x##i64
-#define AIR_ULLONG(x) x##ui64
+#  define AIR_LLONG_FMT "%I64d"
+#  define AIR_ULLONG_FMT "%I64u"
+#  define AIR_LLONG(x) x##i64
+#  define AIR_ULLONG(x) x##ui64
 #else
 typedef signed long long airLLong;
 typedef unsigned long long airULLong;
-#define AIR_LLONG_FMT "%lld"
-#define AIR_ULLONG_FMT "%llu"
-#define AIR_LLONG(x) x##ll
-#define AIR_ULLONG(x) x##ull
+#  define AIR_LLONG_FMT "%lld"
+#  define AIR_ULLONG_FMT "%llu"
+#  define AIR_LLONG(x) x##ll
+#  define AIR_ULLONG(x) x##ull
 #endif
 
 /* This is annoying, thanks to windows */
 #define AIR_PI 3.14159265358979323846
 #define AIR_E  2.71828182845904523536
 
-#define AIR_STRLEN_SMALL (128+1)
+/*
+** These serve as conservative estimates on how large various strings
+** might end up being.  It would be theoretically better to completely
+** avoid the use of fixed-size buffers, but in many contexts the
+** implementation complexity of handling them reliably is distracts
+** from more urgent implementation goals.  In the mean time, these can 
+** be used safely as long as the lengths are used consistently.
+**
+** The possibly unfortunate convention that has become established in
+** Teem is code using these tends to NOT add the "+1", to explicitly
+** indicate the space for 0-termination, and instead assumes it is
+** part of the numbers below, even though this is at the cost of
+** confusion about how the maximal strlen() will be less than each of
+** these numbers. This will be addressed in Teem 2.0.
+*/
+#define AIR_STRLEN_SMALL (128+1) /* has to be big enough to hold:
+                                  - printed value of size_t and ptrdiff_t,
+                                  - line of text that should contain file
+                                    format "magic" 
+                                  */
 #define AIR_STRLEN_MED   (256+1)
 #define AIR_STRLEN_LARGE (512+1)
-#define AIR_STRLEN_HUGE  (1024+1)
+#define AIR_STRLEN_HUGE (1024+1) /* has to be big enough to hold
+                                    a biff error message (one line of it) */
 
-/* enum.c: enum value <--> string conversion utility */  
+/*
+******** airEnum struct
+** 
+** The airEnum provides the basic mechanism of mapping from a 
+** string to an int enum value, and back.
+*/
 typedef struct {
   const char *name;
                /* what are these things? */
   unsigned int M;
-               /* If "val" is NULL, the the valid enum values are from 1 
-                  to M (represented by strings str[1] through str[M]), and
-                  the unknown/invalid value is 0.  If "val" is non-NULL, the
-                  valid enum values are from val[1] to val[M] (but again, 
-                  represented by strings str[1] through str[M]), and the
-                  unknown/invalid value is val[0].  In both cases, str[0]
-                  is the string to represent an unknown/invalid value */
+               /* str[0]: string for the unknown/invalid value;
+                * str[1] .. str[M]: canonical strings for the enum values;
+                * "val" NULL: unknown/invalid = 0; 
+                *             valid values are 1 .. M
+                * "val" non-NULL: unknown/invalid = val[0]; 
+                *                 valid are val[1].. val[M]
+                */
   const char **str; 
-               /* "canonical" textual representation of the enum values */
+               /* see above */
   const int *val;
-               /* non-NULL iff valid values in the enum are not [1..M], and/or
-                  if value for unknown/invalid is not zero */
+               /* see above */
   const char **desc;
                /* desc[i] is a short description of the enum values represented
                   by str[i] (thereby starting with the unknown value), to be
                   used to by things like hest */
   const char **strEqv;  
-               /* All the variations in strings recognized in mapping from
-                  string to value (the values in valEqv).  This **MUST** be
-                  terminated by a zero-length string ("") so as to signify
-                  the end of the list.  This should not contain the string
-                  for unknown/invalid.  If "strEqv" is NULL, then mapping
-                  from string to value is done by traversing "str", and 
-                  "valEqv" is ignored. */
+               /* If non-NULL, all the variations in strings recognized in
+                  mapping from string to value (the values in valEqv).
+                  This **MUST** be terminated by a zero-length string ("") so
+                  as to signify the end of the list.  This should *not*
+                  contain the string for unknown/invalid.
+                  If "strEqv" is NULL, then mapping from string to value is
+                  done only by traversing "str", and "valEqv" is ignored. */
   const int *valEqv;
-               /* The values corresponding to the strings in strEqv; there
-                  should be one integer for each non-zero-length string in
-                  strEqv: strEqv[i] is a valid string representation for
-                  value valEqv[i]. This should not contain the value for
-                  unknown/invalid.  This "valEqv" is ignored if "strEqv" is
-                  NULL. */
+               /* If strEqv non-NULL, valEqv holds the values corresponding
+                  to the strings in strEqv, with one integer for each
+                  non-zero-length string in strEqv: strEqv[i] is a valid
+                  string representation for value valEqv[i]. This should *not*
+                  contain the value for unknown/invalid.
+                  This "valEqv" is ignored if "strEqv" is NULL. */
   int sense;   /* require case matching on strings */
 } airEnum;
 NRRDIO_EXPORT int airEnumUnknown(const airEnum *enm);
@@ -143,7 +169,7 @@ NRRDIO_EXPORT int airEnumVal(const airEnum *enm, const char *str);
 NRRDIO_EXPORT char *airEnumFmtDesc(const airEnum *enm, int val, int canon,
                                 const char *fmt);
 NRRDIO_EXPORT void airEnumPrint(FILE *file, const airEnum *enm);
-
+NRRDIO_EXPORT int airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm);
 
 /*
 ******** airEndian enum
@@ -297,16 +323,17 @@ enum {
   airTypeInt,       /*  2 */
   airTypeUInt,      /*  3 */
   airTypeLongInt,   /*  4 */
-  airTypeSize_t,    /*  5 */
-  airTypeFloat,     /*  6 */
-  airTypeDouble,    /*  7 */
-  airTypeChar,      /*  8 */
-  airTypeString,    /*  9 */
-  airTypeEnum,      /* 10 */
-  airTypeOther,     /* 11 */
+  airTypeULongInt,  /*  5 */
+  airTypeSize_t,    /*  6 */
+  airTypeFloat,     /*  7 */
+  airTypeDouble,    /*  8 */
+  airTypeChar,      /*  9 */
+  airTypeString,    /* 10 */
+  airTypeEnum,      /* 11 */
+  airTypeOther,     /* 12 */
   airTypeLast
 };
-#define AIR_TYPE_MAX   11
+#define AIR_TYPE_MAX   12
 /* parseAir.c */
 NRRDIO_EXPORT double airAtod(const char *str);
 NRRDIO_EXPORT int airSingleSscanf(const char *str, const char *fmt, void *ptr);
@@ -349,6 +376,7 @@ NRRDIO_EXPORT int airStrtokQuoting;
 NRRDIO_EXPORT char *airStrtok(char *s, const char *ct, char **last);
 NRRDIO_EXPORT unsigned int airStrntok(const char *s, const char *ct);
 NRRDIO_EXPORT char *airStrtrans(char *s, char from, char to);
+NRRDIO_EXPORT char *airStrcpy(char *dst, size_t dstSize, const char *src);
 NRRDIO_EXPORT int airEndsWith(const char *s, const char *suff);
 NRRDIO_EXPORT char *airUnescape(char *s);
 NRRDIO_EXPORT char *airOneLinify(char *s);
@@ -374,12 +402,11 @@ enum {
   airInsane_QNaNHiBit,     /*  6: airMyQNaNHiBit is wrong */
   airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN,AIR_SNAN) wrong */
   airInsane_dio,           /*  8: airMyDio set to something invalid */
-  airInsane_32Bit,         /*  9: airMy32Bit is wrong */
-  airInsane_UCSize,        /* 10: unsigned char isn't 8 bits */
-  airInsane_FISize,        /* 11: sizeof(float), sizeof(int) not 4 */
-  airInsane_DLSize         /* 12: sizeof(double), sizeof(airLLong) not 8 */
+  airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
+  airInsane_FISize,        /* 10: sizeof(float), sizeof(int) not 4 */
+  airInsane_DLSize         /* 11: sizeof(double), sizeof(airLLong) not 8 */
 };
-#define AIR_INSANE_MAX        12
+#define AIR_INSANE_MAX        11
 NRRDIO_EXPORT const char *airInsaneErr(int insane);
 NRRDIO_EXPORT int airSanity(void);
 
@@ -392,7 +419,8 @@ NRRDIO_EXPORT void *airFree(void *ptr);
 NRRDIO_EXPORT FILE *airFopen(const char *name, FILE *std, const char *mode);
 NRRDIO_EXPORT FILE *airFclose(FILE *file);
 NRRDIO_EXPORT int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
-NRRDIO_EXPORT const int airMy32Bit;
+NRRDIO_EXPORT char *airSprintSize_t(char str[AIR_STRLEN_SMALL], size_t val);
+NRRDIO_EXPORT char *airSprintPtrdiff_t(char str[AIR_STRLEN_SMALL], ptrdiff_t val);
 
 /* dio.c */
 /*
@@ -497,7 +525,6 @@ NRRDIO_EXPORT void airMopDebug(airArray *arr);
 #define AIR_ENDIAN (airMyEndian)
 #define AIR_QNANHIBIT (airMyQNaNHiBit)
 #define AIR_DIO (airMyDio)
-#define AIR_32BIT (airMy32Bit)
 
 /*
 ******** AIR_NAN, AIR_QNAN, AIR_SNAN, AIR_POS_INF, AIR_NEG_INF
@@ -673,49 +700,6 @@ NRRDIO_EXPORT void airMopDebug(airArray *arr);
 #define AIR_ROUNDUP_UI(x)   ((unsigned int)(floor((x)+0.5)))
 #define AIR_ROUNDDOWN_UI(x) ((unsigned int)(ceil((x)-0.5)))
 
-/*
-******** _AIR_SIZE_T_CNV, _AIR_PTRDIFF_T_CNV, 
-**
-** Format specifiers to use when printf/fprintf/sprintf-ing a value of
-** type size_t or ptrdiff_t.  In C99, this is done with "%z" and "%t",
-** respectively.
-**
-** This is not a useful macro for the world at large- only for Teem
-** source files.  Why: we need to leave this as a bare string, so that
-** we can exploit C's implicit string concatenation in forming a
-** format string.  Therefore, unlike the definition of AIR_ENDIAN,
-** AIR_DIO, etc, _AIR_SIZE_T_CNV can NOT just refer to a const variable
-** (like airMyEndian).  Therefore, TEEM_32BIT has to be defined for
-** ALL source files which want to use _AIR_SIZE_T_CNV, and to be safe,
-** that's all Teem files.  The converse is, since there is no
-** expectation that other projects which use Teem will be defining
-** TEEM_32BIT, this is not useful outside Teem, thus the leading _.
-**
-** http://www.viva64.com/art-1-2-710804781.html for size conventions.
-**
-** It appears that 32 bit APPLE uses ld for size_t and int for ptrdiff.
-*/
-#if TEEM_32BIT == 0
-#  ifdef _WIN64
-#    define _AIR_SIZE_T_CNV "%I64u"
-#    define _AIR_PTRDIFF_T_CNV "%I64d"
-#  else
-#    define _AIR_SIZE_T_CNV "%lu"
-#    define _AIR_PTRDIFF_T_CNV "%ld"
-#  endif
-#elif TEEM_32BIT == 1
-#  ifdef __APPLE__
-#    define _AIR_SIZE_T_CNV "%lu"
-#    define _AIR_PTRDIFF_T_CNV "%d"
-#  else
-#    define _AIR_SIZE_T_CNV "%u"
-#    define _AIR_PTRDIFF_T_CNV "%d"
-#  endif
-#else
-#  define _AIR_SIZE_T_CNV "(no _AIR_SIZE_T_CNV w/out TEEM_32BIT %*d)"
-#  define _AIR_PTRDIFF_T_CNV "(no _AIR_PTRDIFF_T_CNV w/out TEEM_32BIT %*d)"
-#endif
-
 #ifdef __cplusplus
 }
 #endif
@@ -747,7 +731,6 @@ typedef struct {
 NRRDIO_EXPORT biffMsg *biffMsgNew(const char *key);
 NRRDIO_EXPORT biffMsg *biffMsgNix(biffMsg *msg);
 NRRDIO_EXPORT void biffMsgAdd(biffMsg *msg, const char *err);
-NRRDIO_EXPORT void biffMsgAddVL(biffMsg *msg, const char *errfmt, va_list args);
 NRRDIO_EXPORT void biffMsgAddf(biffMsg *msg, const char *errfmt, ...)
 #ifdef __GNUC__
 __attribute__ ((format(printf,2,3)))
@@ -757,8 +740,6 @@ NRRDIO_EXPORT void biffMsgClear(biffMsg *msg);
 NRRDIO_EXPORT unsigned int biffMsgLineLenMax(const biffMsg *msg);
 NRRDIO_EXPORT void biffMsgMove(biffMsg *dest, biffMsg *src,
                              const char *err);
-NRRDIO_EXPORT void biffMsgMoveVL(biffMsg *dest, biffMsg *src,
-                               const char *errfmt, va_list args);
 NRRDIO_EXPORT void biffMsgMovef(biffMsg *dest, biffMsg *src,
                                 const char *errfmt, ...)
 #ifdef __GNUC__
@@ -773,7 +754,6 @@ NRRDIO_EXPORT biffMsg *biffMsgNoop;
 
 /* biffbiff.c */
 NRRDIO_EXPORT void biffAdd(const char *key, const char *err);
-NRRDIO_EXPORT void biffAddVL(const char *key, const char *errfmt, va_list args);
 NRRDIO_EXPORT void biffAddf(const char *key, const char *errfmt, ...)
 #ifdef __GNUC__
   __attribute__ ((format(printf,2,3)))
@@ -793,8 +773,6 @@ NRRDIO_EXPORT int biffCheck(const char *key);
 NRRDIO_EXPORT void biffDone(const char *key);
 NRRDIO_EXPORT void biffMove(const char *destKey, const char *err,
                           const char *srcKey);
-NRRDIO_EXPORT void biffMoveVL(const char *destKey, const char *srcKey,
-                            const char *errfmt, va_list args);
 NRRDIO_EXPORT void biffMovef(const char *destKey, const char *srcKey,
                             const char *errfmt, ...)
 #ifdef __GNUC__
@@ -831,7 +809,7 @@ extern "C" {
 #define NRRD_EXT_EPS    ".eps"
 
 /* HEY: should this be renamed -> MAXNUM ? Would be more consistent
-   with other teem #define names */
+   with other Teem pound-define names */
 #define NRRD_KERNEL_PARMS_NUM 8    /* max # arguments to a kernel-
                                       this is weird: it isn't the max
                                       of any of the NrrdKernels
@@ -1232,16 +1210,6 @@ enum {
 #define NRRD_BASIC_INFO_NONE 0
 
 /*
-** the "endian" enum is actually in the air library, but it is very
-** convenient to have it incorporated into the nrrd enum framework for
-** the purposes of string<-->int conversion.  Unfortunately, the
-** little and big values are 1234 and 4321 respectively, so
-** NRRD_ENDIAN_MAX is not actually the highest valid value, but only
-** an indicator of how many valid values there are.
-*/
-#define NRRD_ENDIAN_MAX 2
-
-/*
 ******** nrrdField enum
 **
 ** the various fields we can parse in a NRRD header
@@ -1266,7 +1234,7 @@ enum {
 ** axis.c (for per-axis info):
 **    _nrrdAxisInfoCopy()
 ** methodsNrrd.c:
-**    lots of functions, but you knew that ...
+**    lots of functions, but you knew that . . .
 */
 enum {
   nrrdField_unknown,
@@ -1972,13 +1940,12 @@ NRRDIO_EXPORT const airEnum *const nrrdSpacingStatus;
 
 /******** arrays of things (poor-man's functions/predicates) */
 /* arraysNrrd.c */
-NRRDIO_EXPORT const char nrrdTypePrintfStr[][AIR_STRLEN_SMALL];
-NRRDIO_EXPORT const size_t nrrdTypeSize[];
-NRRDIO_EXPORT const double nrrdTypeMin[];
-NRRDIO_EXPORT const double nrrdTypeMax[];
-NRRDIO_EXPORT const int nrrdTypeIsIntegral[];
-NRRDIO_EXPORT const int nrrdTypeIsUnsigned[];
-NRRDIO_EXPORT const double nrrdTypeNumberOfValues[];
+NRRDIO_EXPORT const char nrrdTypePrintfStr[NRRD_TYPE_MAX+1][AIR_STRLEN_SMALL];
+NRRDIO_EXPORT const size_t nrrdTypeSize[NRRD_TYPE_MAX+1];
+NRRDIO_EXPORT const double nrrdTypeMin[NRRD_TYPE_MAX+1];
+NRRDIO_EXPORT const double nrrdTypeMax[NRRD_TYPE_MAX+1];
+NRRDIO_EXPORT const int nrrdTypeIsIntegral[NRRD_TYPE_MAX+1];
+NRRDIO_EXPORT const int nrrdTypeIsUnsigned[NRRD_TYPE_MAX+1];
 
 /******** pseudo-constructors, pseudo-destructors, and such */
 /* methodsNrrd.c */

@@ -217,10 +217,15 @@ _nrrdReadNrrdParse_block_size(FILE *file, Nrrd *nrrd,
                               NrrdIoState *nio, int useBiff) {
   static const char me[]="_nrrdReadNrrdParse_block_size";
   char *info;
+  unsigned long int blsz;
 
   AIR_UNUSED(file);
   info = nio->line + nio->pos;
-  _PARSE_ONE_VAL(nrrd->blockSize, _AIR_SIZE_T_CNV, "size_t");
+  /* HEY: see comment in teem/src/air/parseAir.c:airParseStrZ()
+     about misgivings of this strategy for simple portability; old code:
+     _PARSE_ONE_VAL(nrrd->blockSize, _AIR_SIZE_T_CNV, "size_t"); */
+  _PARSE_ONE_VAL(blsz, "%lu", "unsigned long int");
+  nrrd->blockSize = AIR_CAST(size_t, blsz);
   /* because blockSize and type fields may appear in any order,
      we can't use _nrrdFieldCheck[] */
   return 0;
@@ -1231,13 +1236,15 @@ _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
   } else {
     /* we're getting data in "slabs" with the same dimension as the
        nrrd, so for simplicity we assume that they're all equal size */
+    char stmp[AIR_STRLEN_SMALL];
     if (_nrrdDataFNNumber(nio) > nrrd->axis[nrrd->dim-1].size) {
       biffMaybeAddf(useBiff, NRRD,
                     "%s: can't have more pieces (%d) than axis %d "
-                    "slices (" _AIR_SIZE_T_CNV ") when nrrd dimension and "
-                    "datafile dimension are both %d", me,
+                    "slices (%s) when nrrd dimension and "
+                    "datafile dimension are both %u", me,
                     (int)_nrrdDataFNNumber(nio), /* HEY use AIR_CAST? */
-                    nrrd->dim-1, nrrd->axis[nrrd->dim-1].size,
+                    nrrd->dim-1,
+                    airSprintSize_t(stmp, nrrd->axis[nrrd->dim-1].size),
                     nrrd->dim);
       return 1;
     }
@@ -1245,9 +1252,9 @@ _nrrdDataFNCheck(NrrdIoState *nio, Nrrd *nrrd, int useBiff) {
         != nrrd->axis[nrrd->dim-1].size/_nrrdDataFNNumber(nio)) {
       biffMaybeAddf(useBiff, NRRD,
                     "%s: number of datafiles (%d) doesn't divide into "
-                    "number of axis %d slices (" _AIR_SIZE_T_CNV ")", me, 
-                    (int)_nrrdDataFNNumber(nio), 
-                    nrrd->dim-1, nrrd->axis[nrrd->dim-1].size);
+                    "number of axis %u slices (%s)", me, 
+                    (int)_nrrdDataFNNumber(nio), nrrd->dim-1,
+                    airSprintSize_t(stmp, nrrd->axis[nrrd->dim-1].size));
       return 1;
     }
   }
