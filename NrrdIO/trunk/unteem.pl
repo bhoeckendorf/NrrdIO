@@ -53,6 +53,8 @@ while (<>) {
     s|.* \/\* NrrdIO-hack-003 \*\/|int nrrdStateVerboseIO = 0;|g;
     if ($ITK) {
         s|.* \/\* NrrdIO-hack-004 \*\/|#include "itk_zlib.h"|g;
+    } else {
+        s|.* \/\* NrrdIO-hack-004 \*\/|#include <zlib.h>|g;
     }
     s|AIR_EXPORT|NRRDIO_EXPORT|g;
     s|BIFF_EXPORT|NRRDIO_EXPORT|g;
