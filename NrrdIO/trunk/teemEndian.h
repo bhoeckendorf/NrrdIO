@@ -60,4 +60,5 @@ On other platform, we use the result of the TRY_RUN. */
 #    /* okay, its big endian */
 #  else
 #    error TEEM_ENDIAN not set to 1234 (little endian) or 4321 (big endian)
+#  endif
 #endif
