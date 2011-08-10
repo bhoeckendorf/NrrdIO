@@ -72,8 +72,10 @@ NEED_NOT = encodingBzip2.c formatEPS.c formatPNG.c formatPNM.c \
 
 ### These are still needed for exact same functionality as in Teem
 ###
+### teemEndian.h is not copied from Teem because it has undergone
+### some local edits from Michel Audette
 TEEM_HDRS = $(addprefix teem/, \
-  teemDio.h teemEndian.h teemPng.h teemQnanhibit.h)
+  teemDio.h teemPng.h teemQnanhibit.h)
 
 ### NEED_{AIR,BIFF,NRRD}: the source files from teem that we need
 ### NEED_HDRS: the headers that we need
