@@ -34,6 +34,8 @@ extern "C" {
 #endif
 
 #define _NRRD_TEXT_INCR 1024
+#define _NRRD_LLONG_MAX_HELP AIR_LLONG(2305843009213693951)
+#define _NRRD_LLONG_MIN_HELP AIR_LLONG(-2305843009213693952)
 
 
 /*
@@ -63,6 +65,11 @@ typedef union {
   void *P;
   double (*V)[NRRD_SPACE_DIM_MAX];
 } _nrrdAxisInfoGetPtrs;
+
+/* defaultsNrrd.c */
+extern airLLong _nrrdLLongMaxHelp(airLLong val);
+extern airLLong _nrrdLLongMinHelp(airLLong val);
+extern airULLong _nrrdULLongMaxHelp(airULLong val);
 
 /* keyvalue.c */
 extern int _nrrdKeyValueWrite(FILE *file, char **stringP, const char *prefix,

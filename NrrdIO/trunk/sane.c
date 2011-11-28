@@ -52,12 +52,12 @@ airSanity(void) {
   endian = !(*((char*)(&tmpI)));
   if (endian) {
     /* big endian */
-    if (4321 != AIR_ENDIAN) {
+    if (4321 != airMyEndian()) {
       return airInsane_endian;
     }
   }
   else {
-    if (1234 != AIR_ENDIAN) {
+    if (1234 != airMyEndian()) {
       return airInsane_endian;
     }
   }    
@@ -128,7 +128,7 @@ airSanity(void) {
         && airFP_POS_INF == airFPClass_f(pinfF)
         && airFP_NEG_INF == airFPClass_f(ninfF))) {
     /* really, this is verifying that assigning from a double to a 
-       float maintains the FPClass for non-existant values */
+       float maintains the FPClass for non-existent values */
     return airInsane_FltDblFPClass;
   }
   
@@ -148,7 +148,7 @@ airSanity(void) {
 const char
 _airInsaneErr[AIR_INSANE_MAX+1][AIR_STRLEN_MED] = {
   "sanity checked PASSED!",
-  "TEEM_ENDIAN is wrong",
+  "airMyEndian() is wrong",
   "AIR_EXISTS(+inf) was true",
   "AIR_EXISTS(-inf) was true",
   "AIR_EXISTS(NaN) was true",

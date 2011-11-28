@@ -26,6 +26,14 @@
 #include "NrrdIO.h"
 #include "privateBiff.h"
 
+/*
+** Until Teem has its own printf implementation, this will have to do;
+** it is imperfect because these are not functionally identical.
+*/
+#if defined(WIN32) || defined(_WIN32)
+#  define snprintf _snprintf
+#endif
+
 static biffMsg **
 _bmsg=NULL;            /* master array of biffMsg pointers */
 static unsigned int 
@@ -146,7 +154,7 @@ _bmsgAdd(const char *key) {
     /* have to add new biffMsg */
     ii = airArrayLenIncr(_bmsgArr, 1);
     if (!_bmsg) {
-      fprintf(stderr, "%s: PANIC: couldn't accomodate one more key\n", me);
+      fprintf(stderr, "%s: PANIC: couldn't accommodate one more key\n", me);
       exit(1);
     }
     msg = _bmsg[ii] = biffMsgNew(key);
@@ -250,6 +258,7 @@ biffMaybeAddf(int useBiff, const char *key, const char *errfmt, ...) {
   return;
 }
 
+
 /*
 ******** biffGet()
 **
@@ -258,7 +267,7 @@ biffMaybeAddf(int useBiff, const char *key, const char *errfmt, ...) {
 ** be considered a glorified strdup(): it is the callers responsibility
 ** to free() this string later
 */
-char *
+char * /*Teem: allocates char* */     /* this comment is an experiment */
 biffGet(const char *key) {
   static const char me[]="biffGet";
   char *ret;
@@ -276,11 +285,7 @@ biffGet(const char *key) {
       fprintf(stderr, "%s: PANIC: unable to allocate buffer\n", me);
       exit(1);
     }
-#if defined(WIN32) || defined(_WIN32)
-    _snprintf(ret, errlen, err, key);
-#else
     snprintf(ret, errlen, err, key);
-#endif
     return ret;
   }
 

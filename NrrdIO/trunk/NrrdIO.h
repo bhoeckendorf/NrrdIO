@@ -119,6 +119,27 @@ typedef unsigned long long airULLong;
                                     a biff error message (one line of it) */
 
 /*
+******** airPtrPtrUnion
+**
+** union of addresses of pointers to various types, to deal with
+** strict aliasing warnings, especially with the first argument to
+** airArrayNew()
+*/
+typedef union {
+  unsigned char **uc;
+  signed char **sc;
+  char **c;
+  char ***cp;
+  unsigned short **us;
+  short **s;
+  unsigned int **ui;
+  int **i;
+  float **f;
+  double **d;
+  void **v;
+} airPtrPtrUnion;
+
+/*
 ******** airEnum struct
 ** 
 ** The airEnum provides the basic mechanism of mapping from a 
@@ -186,7 +207,7 @@ enum {
 };
 /* endianAir.c */
 NRRDIO_EXPORT const airEnum *const airEndian;
-NRRDIO_EXPORT const int airMyEndian;
+NRRDIO_EXPORT int airMyEndian();
 
 /* array.c: poor-man's dynamically resizable arrays */
 typedef struct {
@@ -522,7 +543,7 @@ NRRDIO_EXPORT void airMopDebug(airArray *arr);
 ** of AIR_ENDIAN etc is to make this information externally available,
 ** to anyone linking against libair (or libteem) and including air.h.
 */
-#define AIR_ENDIAN (airMyEndian)
+#define AIR_ENDIAN (airMyEndian())
 #define AIR_QNANHIBIT (airMyQNaNHiBit)
 #define AIR_DIO (airMyDio)
 
@@ -564,19 +585,15 @@ NRRDIO_EXPORT void airMopDebug(airArray *arr);
 ** saved to memory and loaded back, may end up being different.  I
 ** have yet to produce this behavior, or convince myself it can't happen.
 **
-** The reason to #define AIR_EXISTS as airExists_d is that on some
+** The reason to #define AIR_EXISTS as airExists is that on some
 ** optimizing compilers, the !((x) - (x)) doesn't work.  This has been
 ** the case on Windows and 64-bit irix6 (64 bit) with -Ofast.  If
 ** airSanity fails because a special value "exists", then use the
 ** first version of AIR_EXISTS.
 **
-** There are two performance consequences of using airExists_d(x):
-** 1) Its a function call (but WIN32 can __inline it)
-** 2) (via AIR_EXISTS_D) It requires bit-wise operations on 64-bit
-** ints, which might be terribly slow.
-**
-** The reason for using airExists_d and not airExists_f is for
-** doubles > FLT_MAX: airExists_f would say these are infinity.
+** There is a performance consequence of using airExists(x), in that it 
+** is a function call, although (HEY) we should facilitat inline'ing it
+** for compilers that know how to.
 */
 #if 1
 #define AIR_EXISTS(x) (airExists(x))
@@ -822,48 +839,18 @@ extern "C" {
                                       simplifies implementation. */
 
 /* 
-** For the 64-bit integer types (not standard except in C99), we try
-** to use the names for the _MIN and _MAX values which are used in C99
-** (as well as gcc) such as LLONG_MAX.
-** 
-** If these aren't defined, we try the ones used on SGI such as
-** LONGLONG_MAX.
-**
-** If these aren't defined either, we go wild and define something
-** ourselves (which just happen to be the values defined in C99), with
-** total disregard to what the architecture and compiler actually
-** support.  These values are tested, however, by nrrdSanity().
+** For the 64-bit integer types (not standard except in C99), we used
+** to try to use the names for the _MIN and _MAX values which are used
+** in C99 (as well as gcc) such as LLONG_MAX, or those used on SGI
+** such as LONGLONG_MAX.  However, since the tests (in nrrdSanity)
+** were re-written to detect overflow based on manipulation of
+** specific values, we might as well also define the _MIN and _MAX in
+** terms of explicit values (which agree with those defined by C99).
 */
 
-#ifdef LLONG_MAX
-#  define NRRD_LLONG_MAX LLONG_MAX
-#else
-#  ifdef LONGLONG_MAX
-#    define NRRD_LLONG_MAX LONGLONG_MAX
-#  else
-#    define NRRD_LLONG_MAX AIR_LLONG(9223372036854775807)
-#  endif
-#endif
-
-#ifdef LLONG_MIN
-#  define NRRD_LLONG_MIN LLONG_MIN
-#else
-#  ifdef LONGLONG_MIN
-#    define NRRD_LLONG_MIN LONGLONG_MIN
-#  else
-#    define NRRD_LLONG_MIN (-NRRD_LLONG_MAX-AIR_LLONG(1))
-#  endif
-#endif
-
-#ifdef ULLONG_MAX
-#  define NRRD_ULLONG_MAX ULLONG_MAX
-#else
-#  ifdef ULONGLONG_MAX
-#    define NRRD_ULLONG_MAX ULONGLONG_MAX
-#  else
-#    define NRRD_ULLONG_MAX AIR_ULLONG(18446744073709551615)
-#  endif
-#endif
+#define NRRD_LLONG_MAX AIR_LLONG(9223372036854775807)
+#define NRRD_LLONG_MIN (-NRRD_LLONG_MAX-AIR_LLONG(1))
+#define NRRD_ULLONG_MAX AIR_ULLONG(18446744073709551615)
 
 /*
 ** Chances are, you shouldn't mess with these
@@ -969,7 +956,7 @@ enum {
 **
 ** all the different types, identified by integer
 **
-** 18 July 03: After some consternation, I decided to set
+** 18 July 03: After some consternation, GLK decided to set
 ** nrrdTypeUnknown and nrrdTypeDefault to the same thing, with the
 ** reasoning that the only times that nrrdTypeDefault is used is when
 ** controlling an *output* type (the type of "nout"), or rather,
@@ -1289,7 +1276,7 @@ enum {
 enum {
   nrrdHasNonExistFalse,     /* 0: no non-existent values were seen */
   nrrdHasNonExistTrue,      /* 1: some non-existent values were seen */
-  nrrdHasNonExistOnly,      /* 2: NOTHING BUT non-existant values were seen */
+  nrrdHasNonExistOnly,      /* 2: NOTHING BUT non-existent values were seen */
   nrrdHasNonExistUnknown,   /* 3 */
   nrrdHasNonExistLast
 };
@@ -1777,7 +1764,7 @@ typedef struct NrrdIoState_t {
                                to whence this nrrd is "save"ed, MINUS the
                                trailing "/", so as to facilitate games with
                                header-relative data files */
-    *base,                  /* when "save"ing a nrrd into seperate
+    *base,                  /* when "save"ing a nrrd into separate
                                header and data, the name of the header
                                file (e.g. "output.nhdr") MINUS the ".nhdr".
                                This is massaged to produce a header-
