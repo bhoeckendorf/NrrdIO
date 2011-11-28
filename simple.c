@@ -1268,7 +1268,7 @@ _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, Nrrd *nrrd,
 ** This function will always (assuming type is valid) set the value of
 ** nrrd->hasNonExist to either nrrdNonExistTrue or nrrdNonExistFalse,
 ** and it will return that value.  For lack of a more sophisticated
-** policy, blocks are currently always considered to be existant
+** policy, blocks are currently always considered to be existent
 ** values (because nrrdTypeIsIntegral[nrrdTypeBlock] is currently true).
 ** This function will ALWAYS determine the correct answer and set the
 ** value of nrrd->hasNonExist: it ignores the value of
@@ -1282,7 +1282,7 @@ _nrrdSplitSizes(size_t *pieceSize, size_t *pieceNum, Nrrd *nrrd,
 ** as the expression of a conditional:
 **
 **   if (nrrdHasNonExistSet(nrrd)) {
-**     ... handle existance of non-existant values ...
+**     ... handle existance of non-existent values ...
 **   }
 */
 /*
@@ -1354,8 +1354,6 @@ _nrrdCheckEnums(void) {
 ** the architecture/etc which we're currently running on.  
 ** 
 ** returns 1 if all is okay, 0 if there is a problem
-**
-** biffMsg *msg is allowed to be NULL
 */
 int /*Teem: biff if (!ret) */
 nrrdSanity(void) {
@@ -1454,30 +1452,28 @@ nrrdSanity(void) {
     return 0;
   }
   
-  /* nrrd-defined type min/max values */
-  tmpLLI = NRRD_LLONG_MAX;
-  if (tmpLLI != NRRD_LLONG_MAX) {
+  /* nrrd-defined min/max values for 64-bit integral types */
+  /* NOTE: because signed integral overflow is undefined in C, the tests for
+     signed long long no longer use overflow (and an assumption of two's
+     complement representation) to assess the correctness of NRRD_LLONG_MAX
+     and NRRD_LLONG_MIN.  We merely test that these values can be stored,
+     which we do via indirect (perhaps needlessly so) means.
+     (h/t Sean McBride for pointing this out) */
+  tmpLLI = _nrrdLLongMaxHelp(_nrrdLLongMaxHelp(_NRRD_LLONG_MAX_HELP));
+  if (!( tmpLLI > 0 && NRRD_LLONG_MAX == tmpLLI )) {
     biffAddf(NRRD, "%s: long long int can't hold NRRD_LLONG_MAX ("
-             AIR_ULLONG_FMT ")", me,
+             AIR_LLONG_FMT ")", me,
              NRRD_LLONG_MAX);
     return 0;
   }
-  tmpLLI += 1;
-  if (NRRD_LLONG_MIN != tmpLLI) {
-    biffAddf(NRRD, "%s: long long int min (" AIR_LLONG_FMT 
-             ") or max (" AIR_LLONG_FMT ") incorrect", me,
-             NRRD_LLONG_MIN, NRRD_LLONG_MAX);
+  tmpLLI = _nrrdLLongMinHelp(_nrrdLLongMinHelp(_NRRD_LLONG_MIN_HELP));
+  if (!( tmpLLI < 0 && NRRD_LLONG_MIN == tmpLLI )) {
+    biffAddf(NRRD, "%s: long long int can't hold NRRD_LLONG_MIN ("
+             AIR_LLONG_FMT ")", me,
+             NRRD_LLONG_MIN);
     return 0;
   }
-  tmpULLI = NRRD_ULLONG_MAX;
-  if (tmpULLI != NRRD_ULLONG_MAX) {
-    biffAddf(NRRD, 
-             "%s: unsigned long long int can't hold NRRD_ULLONG_MAX ("
-             AIR_ULLONG_FMT ")",
-             me, NRRD_ULLONG_MAX);
-    return 0;
-  }
-  tmpULLI += 1;
+  tmpULLI = _nrrdULLongMaxHelp(NRRD_ULLONG_MAX);
   if (tmpULLI != 0) {
     biffAddf(NRRD,
              "%s: unsigned long long int max (" AIR_ULLONG_FMT 
