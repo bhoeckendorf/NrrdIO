@@ -67,7 +67,8 @@ airMopNew() {
 }
 
 /*
-** this always returns 0, to facilitate this weird idiom:
+** except for allocation error, this always returns 0,
+** to facilitate this weird idiom:
 **
 **   if (!(nmeasr = nrrdNew())
 **       || airMopAdd(mop, nmeasr, (airMopper)nrrdNuke, airMopAlways)
@@ -101,7 +102,7 @@ airMopAdd(airArray *arr, void *ptr, airMopper mop, int when) {
   ii = airArrayLenIncr(arr, 1);
   if (!arr->data) {
     fprintf(stderr, "%s: PANIC: can't re-allocate mop array\n", me);
-    exit(1);
+    return 1;
   }
   mops = (airMop *)arr->data;
   mops[ii].ptr = ptr;
