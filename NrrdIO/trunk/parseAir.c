@@ -98,6 +98,9 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
     if (strstr(tmp, "nan")) {
       val = AIR_NAN;
     }
+    if (strstr(tmp, "pi")) {
+      val = AIR_PI;
+    }
     else if (strstr(tmp, "-inf")) {
       val = AIR_NEG_INF;
     }
@@ -379,7 +382,10 @@ airParseStrE(int *out, const char *_s, const char *ct, unsigned int n, ...) {
         return i;
       }
       out[i] = airEnumVal(enm, tmp);
-      if (airEnumUnknown(enm) == out[i]) {
+      if (airEnumUnknown(enm) == out[i]
+          /* getting the unknown value is not a parse failure if the
+             string was actually the string for the unknown value! */
+          && strcmp(tmp, enm->str[0])) {
         airMopError(mop);
         return i;
       }

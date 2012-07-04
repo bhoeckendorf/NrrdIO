@@ -441,7 +441,8 @@ NRRDIO_EXPORT FILE *airFopen(const char *name, FILE *std, const char *mode);
 NRRDIO_EXPORT FILE *airFclose(FILE *file);
 NRRDIO_EXPORT int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
 NRRDIO_EXPORT char *airSprintSize_t(char str[AIR_STRLEN_SMALL], size_t val);
-NRRDIO_EXPORT char *airSprintPtrdiff_t(char str[AIR_STRLEN_SMALL], ptrdiff_t val);
+NRRDIO_EXPORT char *airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t v);
+NRRDIO_EXPORT char *airSprintPtrdiff_t(char str[AIR_STRLEN_SMALL], ptrdiff_t v);
 
 /* dio.c */
 /*
@@ -763,6 +764,7 @@ NRRDIO_EXPORT void biffMsgMovef(biffMsg *dest, biffMsg *src,
 __attribute__ ((format(printf,3,4)))
 #endif
 ;
+NRRDIO_EXPORT unsigned int biffMsgErrNum(const biffMsg *msg);
 NRRDIO_EXPORT unsigned int biffMsgStrlen(const biffMsg *msg);
 NRRDIO_EXPORT char *biffMsgStrAlloc(const biffMsg *msg);
 NRRDIO_EXPORT void biffMsgStrSet(char *ret, const biffMsg *msg);
