@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -651,7 +651,6 @@ nrrdCopy(Nrrd *nout, const Nrrd *nin) {
   return 0;
 }
 
-
 /*
 ******** nrrdAlloc_nva()
 **
@@ -853,50 +852,6 @@ nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim, ...) {
   va_end(ap);
   if (nrrdMaybeAlloc_nva(nrrd, type, dim, size)) {
     biffAddf(NRRD, "%s:", me);
-    return 1;
-  }
-  return 0;
-}
-
-/*
-******** nrrdPPM()
-**
-** for making a nrrd suitable for holding PPM data
-**
-** "don't mess with peripheral information"
-*/
-int
-nrrdPPM(Nrrd *ppm, size_t sx, size_t sy) {
-  static const char me[]="nrrdPPM";
-  char stmp[2][AIR_STRLEN_SMALL];
-
-  if (nrrdMaybeAlloc_va(ppm, nrrdTypeUChar, 3,
-                        AIR_CAST(size_t, 3), sx, sy)) {
-    biffAddf(NRRD, "%s: couldn't allocate %s x %s 24-bit image", me,
-             airSprintSize_t(stmp[0], sx),
-             airSprintSize_t(stmp[1], sy));
-    return 1;
-  }
-  return 0;
-}
-
-/*
-******** nrrdPGM()
-**
-** for making a nrrd suitable for holding PGM data
-**
-** "don't mess with peripheral information"
-*/
-int
-nrrdPGM(Nrrd *pgm, size_t sx, size_t sy) {
-  static const char me[]="nrrdPGM";
-  char stmp[2][AIR_STRLEN_SMALL];
-
-  if (nrrdMaybeAlloc_va(pgm, nrrdTypeUChar, 2,
-                        sx, sy)) {
-    biffAddf(NRRD, "%s: couldn't allocate %s x %s 8-bit image", me,
-             airSprintSize_t(stmp[0], sx),
-             airSprintSize_t(stmp[1], sy));
     return 1;
   }
   return 0;

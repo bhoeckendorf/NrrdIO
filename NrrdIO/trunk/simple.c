@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -379,15 +379,6 @@ nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]) {
   return;
 }
 
-void
-nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]) {
-  int di;
-
-  for (di=0; di<NRRD_SPACE_DIM_MAX; di++) {
-    vec[di] = 0;
-  }
-  return;
-}
 
 /*
 ** _nrrdContentGet
@@ -1504,14 +1495,5 @@ nrrdSanity(void) {
 
   _nrrdSanity = 1;
   return 1;
-}
-
-void
-nrrdZeroSet(Nrrd *nout) {
-
-  if (!_nrrdCheck(nout, AIR_TRUE, AIR_FALSE)) {
-    memset(nout->data, 0, nrrdElementNumber(nout)*nrrdElementSize(nout));
-  }
-  return;
 }
 

@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -24,6 +24,7 @@
 */
 
 
+#include "NrrdConfigure.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -31,7 +32,6 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <float.h>
-#include <stddef.h>      /* for ptrdiff_t */
 
 /*
 ******** TEEM_VERSION 
@@ -62,7 +62,6 @@
 extern "C" {
 #endif
 
-#define TEEM_BUILD 1
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(air_EXPORTS) || defined(teem_EXPORTS)
 #    define NRRDIO_EXPORT extern __declspec(dllexport)
@@ -89,9 +88,6 @@ typedef unsigned long long airULLong;
 #  define AIR_ULLONG(x) x##ull
 #endif
 
-/* This is annoying, thanks to windows */
-#define AIR_PI 3.14159265358979323846
-#define AIR_E  2.71828182845904523536
 
 /*
 ** These serve as conservative estimates on how large various strings
@@ -182,7 +178,6 @@ typedef struct {
   int sense;   /* require case matching on strings */
 } airEnum;
 NRRDIO_EXPORT int airEnumUnknown(const airEnum *enm);
-NRRDIO_EXPORT int airEnumLast(const airEnum *enm);
 NRRDIO_EXPORT int airEnumValCheck(const airEnum *enm, int val);
 NRRDIO_EXPORT const char *airEnumStr(const airEnum *enm, int val);
 NRRDIO_EXPORT const char *airEnumDesc(const airEnum *enm, int val);
@@ -190,7 +185,6 @@ NRRDIO_EXPORT int airEnumVal(const airEnum *enm, const char *str);
 NRRDIO_EXPORT char *airEnumFmtDesc(const airEnum *enm, int val, int canon,
                                 const char *fmt);
 NRRDIO_EXPORT void airEnumPrint(FILE *file, const airEnum *enm);
-NRRDIO_EXPORT int airEnumCheck(char err[AIR_STRLEN_LARGE], const airEnum *enm);
 
 /*
 ******** airEndian enum
@@ -441,8 +435,6 @@ NRRDIO_EXPORT FILE *airFopen(const char *name, FILE *std, const char *mode);
 NRRDIO_EXPORT FILE *airFclose(FILE *file);
 NRRDIO_EXPORT int airSinglePrintf(FILE *file, char *str, const char *fmt, ...);
 NRRDIO_EXPORT char *airSprintSize_t(char str[AIR_STRLEN_SMALL], size_t val);
-NRRDIO_EXPORT char *airPrettySprintSize_t(char str[AIR_STRLEN_SMALL], size_t v);
-NRRDIO_EXPORT char *airSprintPtrdiff_t(char str[AIR_STRLEN_SMALL], ptrdiff_t v);
 
 /* dio.c */
 /*
@@ -1906,7 +1898,7 @@ NRRDIO_EXPORT int nrrdStateVerboseIO;
 NRRDIO_EXPORT int nrrdStateKeyValuePairsPropagate;
 NRRDIO_EXPORT int nrrdStateAlwaysSetContent;
 NRRDIO_EXPORT int nrrdStateDisableContent;
-NRRDIO_EXPORT char *nrrdStateUnknownContent;
+NRRDIO_EXPORT const char *nrrdStateUnknownContent;
 NRRDIO_EXPORT int nrrdStateGrayscaleImage3D;
 NRRDIO_EXPORT int nrrdStateKeyValueReturnInternalPointers;
 NRRDIO_EXPORT int nrrdStateKindNoop;
@@ -1962,8 +1954,6 @@ NRRDIO_EXPORT int nrrdMaybeAlloc_nva(Nrrd *nrrd, int type, unsigned int dim,
                                    const size_t *size);
 NRRDIO_EXPORT int nrrdMaybeAlloc_va(Nrrd *nrrd, int type, unsigned int dim,
                                   ... /* size_t sx, sy, .., ax(dim-1) size */);
-NRRDIO_EXPORT int nrrdPPM(Nrrd *, size_t sx, size_t sy);
-NRRDIO_EXPORT int nrrdPGM(Nrrd *, size_t sx, size_t sy);
 
 /******** axis info related */
 /* axis.c */
@@ -2045,8 +2035,6 @@ NRRDIO_EXPORT double nrrdSpaceVecNorm(int sdim,
 NRRDIO_EXPORT int nrrdSpaceVecExists(int sdim,
                                    double vec[NRRD_SPACE_DIM_MAX]);
 NRRDIO_EXPORT void nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
-NRRDIO_EXPORT void nrrdSpaceVecSetZero(double vec[NRRD_SPACE_DIM_MAX]);
-NRRDIO_EXPORT void nrrdZeroSet(Nrrd *nout);
 
 /******** comments related */
 /* comment.c */

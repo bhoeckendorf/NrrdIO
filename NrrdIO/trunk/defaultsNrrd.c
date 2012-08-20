@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -55,7 +55,7 @@ int nrrdStateVerboseIO = 0;
 int nrrdStateKeyValuePairsPropagate = AIR_FALSE;
 int nrrdStateAlwaysSetContent = AIR_TRUE;
 int nrrdStateDisableContent = AIR_FALSE;
-char *nrrdStateUnknownContent = NRRD_UNKNOWN;
+const char *nrrdStateUnknownContent = NRRD_UNKNOWN;
 int nrrdStateGrayscaleImage3D = AIR_FALSE;
 /* there is no sane reason to change this initialization */
 int nrrdStateKeyValueReturnInternalPointers = AIR_FALSE;
