@@ -40,7 +40,7 @@
 ###    perl mangle.pl itk >! itk_NrrdIO_mangle.h
 ###    make -f sample-GNUmakefile clean
 ###
-### for the NrrdIO in Teem:
+### for a NrrdIO in any other application
 ###
 ###    svn update
 ###    make -f pre-GNUmakefile clean
