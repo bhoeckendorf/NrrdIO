@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -66,7 +66,7 @@ F(A, DB)
 ** Dereferences v as TB*, casts it to TA, returns it.
 */
 #define LOAD_DEF(TA, TB)                    \
-TA                                          \
+static TA                                   \
 _nrrdLoad##TA##TB(TB *v) {                  \
   return (TA)(*v);                          \
 }
@@ -104,7 +104,7 @@ nrrdDLoad[NRRD_TYPE_MAX+1])(const void*) = {
 ** the value that was passed in.
 */
 #define STORE_DEF(TA, TB)                   \
-TA                                          \
+static TA                                   \
 _nrrdStore##TA##TB(TB *v, TA j) {           \
   return (TA)(*v = (TB)j);                  \
 }
@@ -140,7 +140,7 @@ nrrdDStore[NRRD_TYPE_MAX+1])(void *, double) = {
 ** Looks up element I of TB array v, and returns it cast to a TA.
 */
 #define LOOKUP_DEF(TA, TB)                    \
-TA                                            \
+static TA                                     \
 _nrrdLookup##TA##TB(TB *v, size_t I) {        \
   return (TA)v[I];                            \
 }
@@ -178,7 +178,7 @@ nrrdDLookup[NRRD_TYPE_MAX+1])(const void *, size_t) = {
 ** the value that was passed in.
 */
 #define INSERT_DEF(TA, TB)                         \
-TA                                                 \
+static TA                                          \
 _nrrdInsert##TA##TB(TB *v, size_t I, TA j) {       \
   return (TA)(v[I] = (TB)j);                       \
 }

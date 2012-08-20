@@ -1,6 +1,6 @@
 /*
   NrrdIO: stand-alone code for basic nrrd functionality
-  Copyright (C) 2011, 2010, 2009  University of Chicago
+  Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
   Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
   Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
  
@@ -97,9 +97,6 @@ airSingleSscanf(const char *str, const char *fmt, void *ptr) {
     airToLower(tmp);
     if (strstr(tmp, "nan")) {
       val = AIR_NAN;
-    }
-    if (strstr(tmp, "pi")) {
-      val = AIR_PI;
     }
     else if (strstr(tmp, "-inf")) {
       val = AIR_NEG_INF;
