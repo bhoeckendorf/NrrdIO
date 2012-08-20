@@ -48,7 +48,8 @@ while (<>) {
     } else {
 	s|\/\* NrrdIO-hack-000 \*\/||g;
     }
-    s|\/\* NrrdIO-hack-001 \*\/|#define TEEM_BUILD 1|g;
+    # apparently no longer needed as of Mon Aug 20 11:57:26 CDT 2012
+    # s|\/\* NrrdIO-hack-001 \*\/|#define TEEM_BUILD 1|g;
     s|.* \/\* NrrdIO-hack-002 \*\/|#if 1|g;
     s|.* \/\* NrrdIO-hack-003 \*\/|int nrrdStateVerboseIO = 0;|g;
     if ($ITK) {
@@ -56,6 +57,7 @@ while (<>) {
     } else {
         s|.* \/\* NrrdIO-hack-004 \*\/|#include <zlib.h>|g;
     }
+    s|\/\* NrrdIO-hack-005 \*\/|#include "NrrdConfigure.h"|g;
     s|AIR_EXPORT|NRRDIO_EXPORT|g;
     s|BIFF_EXPORT|NRRDIO_EXPORT|g;
     s|NRRD_EXPORT|NRRDIO_EXPORT|g;
