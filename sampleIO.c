@@ -80,8 +80,10 @@ demoIO(char *filename) {
 
 int
 main(int argc, char **argv) {
-  char *err;
-
+  char *err, *me;
+  int enc, form, miss;
+  
+  me = argv[0];
   fprintf(stderr, "(from Teem %s, %s)\n", 
           airTeemVersion, airTeemReleaseDate);
 
@@ -92,12 +94,51 @@ main(int argc, char **argv) {
     fprintf(stderr, "%s\n", err);
     free(err); 
     return 1;
-  } else {
-    fprintf(stderr, "(nrrdSanity check passed)\n\n");
+  }
+  fprintf(stderr, "(nrrdSanity check passed)\n");
+  fprintf(stderr, " Formats available:");
+  miss = AIR_FALSE;
+  for (form=nrrdFormatTypeUnknown+1; form<nrrdFormatTypeLast; form++) {
+    if (nrrdFormatArray[form]->available()) {
+      fprintf(stderr, " %s", airEnumStr(nrrdFormatType, form));
+    } else {
+      miss = AIR_TRUE;
+    }
+  }
+  fprintf(stderr, "\n");
+  if (miss) {
+    fprintf(stderr, "   (not available:");
+    for (enc=nrrdFormatTypeUnknown+1; enc<nrrdFormatTypeLast; enc++) {
+      if (!nrrdFormatArray[enc]->available()) {
+        fprintf(stderr, " %s", airEnumStr(nrrdFormatType, enc));
+      }
+    }
+    fprintf(stderr, ")\n");
   }
 
+  fprintf(stderr, " Nrrd data encodings available:");
+  miss = AIR_FALSE;
+  for (enc=nrrdEncodingTypeUnknown+1; enc<nrrdEncodingTypeLast; enc++) {
+    if (nrrdEncodingArray[enc]->available()) {
+      fprintf(stderr, " %s", airEnumStr(nrrdEncodingType, enc));
+    } else {
+      miss = AIR_TRUE;
+    }
+  }
+  fprintf(stderr, "\n");
+  if (miss) {
+    fprintf(stderr, "   (not available:");
+    for (enc=nrrdEncodingTypeUnknown+1; enc<nrrdEncodingTypeLast; enc++) {
+      if (!nrrdEncodingArray[enc]->available()) {
+        fprintf(stderr, " %s", airEnumStr(nrrdEncodingType, enc));
+      }
+    }
+    fprintf(stderr, ")\n");
+  }
+  fprintf(stderr, "\n");
+
   if (2 != argc) {
-    fprintf(stderr, "usage: demoIO <filename>\n");
+    fprintf(stderr, "usage: %s <filename>\n", me);
     return 1;
   }
 
