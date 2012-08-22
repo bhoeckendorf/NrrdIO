@@ -352,20 +352,14 @@ biffSetStr(char *str, const char *key) {
 /*
 ******** biffCheck()
 **
-** sees how many messages there are for a given key
-** returns 0 if the key doesn't exist.
+** sees how many messages there are for a given key;
+** Note that this is just a simple wrapper around biffMsgErrNum
 */
-int
+unsigned int
 biffCheck(const char *key) {
-  biffMsg *msg;
 
   _bmsgStart();
-  msg = _bmsgFind(key);
-  if (!msg) {
-    return 0;
-  }
-  
-  return msg->errNum;
+  return biffMsgErrNum(_bmsgFind(key));
 }
 
 /*
@@ -459,13 +453,3 @@ biffGetDone(const char *key) {
   return ret;
 }
 
-void
-biffSetStrDone(char *str, const char *key) {
-
-  _bmsgStart();
-
-  biffSetStr(str, key);
-  biffDone(key);  /* will call _bmsgFinish if this is the last key */
-
-  return;
-}

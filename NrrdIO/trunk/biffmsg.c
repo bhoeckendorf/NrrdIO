@@ -116,15 +116,6 @@ _biffMsgAddVL(biffMsg *msg, const char *errfmt, va_list args) {
   return;
 }
 
-void
-biffMsgAddf(biffMsg *msg, const char *errfmt, ...) {
-  va_list args;
-
-  va_start(args, errfmt);
-  _biffMsgAddVL(msg, errfmt, args);
-  va_end(args);
-  return;
-}
 
 void
 biffMsgClear(biffMsg *msg) {

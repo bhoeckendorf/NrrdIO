@@ -415,7 +415,8 @@ enum {
   airInsane_FltDblFPClass, /*  5: double -> float assignment messed up the
                                airFPClass_f() of the value */
   airInsane_QNaNHiBit,     /*  6: airMyQNaNHiBit is wrong */
-  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN,AIR_SNAN) wrong */
+  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN) wrong 
+                                  (no longer checking on problematic SNAN) */
   airInsane_dio,           /*  8: airMyDio set to something invalid */
   airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
   airInsane_FISize,        /* 10: sizeof(float), sizeof(int) not 4 */
@@ -741,26 +742,13 @@ typedef struct {
 NRRDIO_EXPORT biffMsg *biffMsgNew(const char *key);
 NRRDIO_EXPORT biffMsg *biffMsgNix(biffMsg *msg);
 NRRDIO_EXPORT void biffMsgAdd(biffMsg *msg, const char *err);
-NRRDIO_EXPORT void biffMsgAddf(biffMsg *msg, const char *errfmt, ...)
-#ifdef __GNUC__
-__attribute__ ((format(printf,2,3)))
-#endif
-;
 NRRDIO_EXPORT void biffMsgClear(biffMsg *msg);
 NRRDIO_EXPORT unsigned int biffMsgLineLenMax(const biffMsg *msg);
 NRRDIO_EXPORT void biffMsgMove(biffMsg *dest, biffMsg *src,
                              const char *err);
-NRRDIO_EXPORT void biffMsgMovef(biffMsg *dest, biffMsg *src,
-                                const char *errfmt, ...)
-#ifdef __GNUC__
-__attribute__ ((format(printf,3,4)))
-#endif
-;
 NRRDIO_EXPORT unsigned int biffMsgErrNum(const biffMsg *msg);
 NRRDIO_EXPORT unsigned int biffMsgStrlen(const biffMsg *msg);
-NRRDIO_EXPORT char *biffMsgStrAlloc(const biffMsg *msg);
 NRRDIO_EXPORT void biffMsgStrSet(char *ret, const biffMsg *msg);
-NRRDIO_EXPORT char *biffMsgStrGet(const biffMsg *msg);
 NRRDIO_EXPORT biffMsg *biffMsgNoop;
 
 /* biffbiff.c */
@@ -780,18 +768,8 @@ __attribute__ ((format(printf,3,4)))
 NRRDIO_EXPORT char *biffGet(const char *key);
 NRRDIO_EXPORT int biffGetStrlen(const char *key);
 NRRDIO_EXPORT void biffSetStr(char *str, const char *key);
-NRRDIO_EXPORT int biffCheck(const char *key);
 NRRDIO_EXPORT void biffDone(const char *key);
-NRRDIO_EXPORT void biffMove(const char *destKey, const char *err,
-                          const char *srcKey);
-NRRDIO_EXPORT void biffMovef(const char *destKey, const char *srcKey,
-                            const char *errfmt, ...)
-#ifdef __GNUC__
-__attribute__ ((format(printf,3,4)))
-#endif
-;
 NRRDIO_EXPORT char *biffGetDone(const char *key);
-NRRDIO_EXPORT void biffSetStrDone(char *str, const char *key);
 
 #ifdef __cplusplus
 }
