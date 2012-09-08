@@ -38,11 +38,6 @@ char _nrrdLineSep[] = "\r\n";
 char _nrrdNoSpaceVector[] = "none";
 char _nrrdTextSep[] = " ,\t";
 
-typedef union {
-  char ***c;
-  void **v;
-} _cppu;
-
 /*
 ** return length of next "line" in nio->headerStringRead
 */
@@ -89,7 +84,7 @@ _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
   char **line;
   airArray *mop, *lineArr;
   int lineIdx;
-  _cppu u;
+  airPtrPtrUnion appu;
   unsigned int len, needLen;
 
   if (!( lenP && nio && (file || nio->headerStringRead))) {
@@ -133,8 +128,8 @@ _nrrdOneLine(unsigned int *lenP, NrrdIoState *nio, FILE *file) {
     /* line didn't fit in buffer, so we have to increase line
        buffer size and put the line together in pieces */
     /* NOTE: this will never happen when reading from nio->headerStringRead */
-    u.c = &line;
-    lineArr = airArrayNew(u.v, NULL, sizeof(char *), 1);
+    appu.cp = &line;
+    lineArr = airArrayNew(appu.v, NULL, sizeof(char *), 1);
     if (!lineArr) {
       biffAddf(NRRD, "%s: couldn't allocate airArray", me);
       *lenP = 0; return 1;

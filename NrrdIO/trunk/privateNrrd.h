@@ -37,6 +37,8 @@ extern "C" {
 #define _NRRD_LLONG_MAX_HELP AIR_LLONG(2305843009213693951)
 #define _NRRD_LLONG_MIN_HELP AIR_LLONG(-2305843009213693952)
 
+#define _NRRD_WHITESPACE_NOTAB " \n\r\v\f"       /* K+R pg. 157 */
+
 
 /*
 ** _NRRD_SPACING
@@ -72,6 +74,8 @@ extern airLLong _nrrdLLongMinHelp(airLLong val);
 extern airULLong _nrrdULLongMaxHelp(airULLong val);
 
 /* keyvalue.c */
+extern void _nrrdWriteEscaped(FILE *file, char *dst, const char *str,
+                              const char *toescape, const char *tospace);
 extern int _nrrdKeyValueWrite(FILE *file, char **stringP, const char *prefix,
                               const char *key, const char *value);
 
@@ -139,8 +143,8 @@ extern char _nrrdTextSep[];
 extern void _nrrdSplitName(char **dirP, char **baseP, const char *name);
 
 /* write.c */
-extern int _nrrdFieldInteresting (const Nrrd *nrrd, NrrdIoState *nio,
-                                  int field);
+extern int _nrrdFieldInteresting(const Nrrd *nrrd, NrrdIoState *nio,
+                                 int field);
 extern void _nrrdSprintFieldInfo(char **strP, char *prefix,
                                  const Nrrd *nrrd, NrrdIoState *nio,
                                  int field);
@@ -157,6 +161,9 @@ extern int nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin);
 extern int _nrrdCopy(Nrrd *nout, const Nrrd *nin, int bitflag);
 extern int _nrrdSizeCheck(const size_t *size, unsigned int dim, int useBiff);
 extern void _nrrdTraverse(Nrrd *nrrd);
+extern int _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type,
+                                        unsigned int dim, const size_t *size,
+                                        int zeroWhenNoAlloc);
 
 #if TEEM_ZLIB
 #if TEEM_VTK_MANGLE
