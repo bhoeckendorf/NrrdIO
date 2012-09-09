@@ -40,7 +40,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
   int fd, dio, car;
   long savePos;
   char *data_c;
-  size_t elementSize, maxChunkSize, remainder, chunkSize;
+  size_t elementSize, maxChunkSize, remainderValue, chunkSize;
   size_t retTmp;
   char stmp[3][AIR_STRLEN_SMALL];
 
@@ -81,9 +81,9 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
     elementSize = nrrdElementSize(nrrd);
     maxChunkSize = 1024 * 1024 * 1024 / elementSize;
     while(ret < elementNum) {
-      remainder = elementNum-ret;
-      if (remainder < maxChunkSize) {
-        chunkSize = remainder;
+      remainderValue = elementNum-ret;
+      if (remainderValue < maxChunkSize) {
+        chunkSize = remainderValue;
       } else {
         chunkSize = maxChunkSize;
       }
@@ -129,7 +129,7 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
   int fd, dio;
   size_t ret, bsize;
   char *data_c;
-  size_t elementSize, maxChunkSize, remainder, chunkSize;
+  size_t elementSize, maxChunkSize, remainderValue, chunkSize;
   size_t retTmp;
   char stmp[3][AIR_STRLEN_SMALL];
   
@@ -171,9 +171,9 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
     elementSize = nrrdElementSize(nrrd);
     maxChunkSize = 1024 * 1024 * 1024 / elementSize;
     while(ret < elementNum) {
-      remainder = elementNum-ret;
-      if (remainder < maxChunkSize) {
-        chunkSize = remainder;
+      remainderValue = elementNum-ret;
+      if (remainderValue < maxChunkSize) {
+        chunkSize = remainderValue;
       } else {
         chunkSize = maxChunkSize;
       }
