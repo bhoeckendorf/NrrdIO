@@ -121,7 +121,7 @@ typedef unsigned long long airULLong;
 ** aliasing warnings, especially with the first argument to airArrayNew().
 ** Unfortunately this can't meet the needs of all such cases because some
 ** libraries need to manage addresses of arrays of other kinds of
-** library-specific objects (about which air is ignorant)
+** library-specific objects (about which air is ignorant).
 */
 typedef union {
   unsigned char **uc;
@@ -516,6 +516,14 @@ NRRDIO_EXPORT void airMopDebug(airArray *arr);
 ** since casts should probably always be revisited and reconsidered.
 */
 #define AIR_CAST(t, v) ((t)(v))
+
+/*
+******** AIR_VOIDP
+**
+** apparent explicit casting to "void *" is needed to use %p in var-args
+** printf, so this is a slightly more convenient form for that
+*/
+#define AIR_VOIDP(x) AIR_CAST(void *, x)
 
 /*
 ******** AIR_MALLOC, AIR_CALLOC
