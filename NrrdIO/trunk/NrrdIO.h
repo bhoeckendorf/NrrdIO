@@ -510,18 +510,21 @@ NRRDIO_EXPORT void airMopDebug(airArray *arr);
 #define AIR_UNUSED(x) (void)(x)
 
 /*
-******** AIR_CAST
+******** AIR_CAST, AIR_UINT, AIR_INT
 **
-** just a cast, but with the added ability to grep for it more easily,
+** just casts, but with the added ability to grep for them more easily,
 ** since casts should probably always be revisited and reconsidered.
 */
 #define AIR_CAST(t, v) ((t)(v))
+#define AIR_UINT(x) AIR_CAST(unsigned int, x)
+#define AIR_INT(x) AIR_CAST(int, x)
 
 /*
 ******** AIR_VOIDP
 **
-** apparent explicit casting to "void *" is needed to use %p in var-args
-** printf, so this is a slightly more convenient form for that
+** explicit casting to "void *" from non-void* pointers is strictly speaking
+** needed for the %p format specifier in printf-like functions; this is a
+** slightly more convenient form
 */
 #define AIR_VOIDP(x) AIR_CAST(void *, x)
 
@@ -596,13 +599,18 @@ NRRDIO_EXPORT void airMopDebug(airArray *arr);
 ** first version of AIR_EXISTS.
 **
 ** There is a performance consequence of using airExists(x), in that it 
-** is a function call, although (HEY) we should facilitat inline'ing it
+** is a function call, although (HEY) we should facilitate inline'ing it
 ** for compilers that know how to.
+**
+** gcc 4.5.3 -std=c89, at least on cygwin, has problems with
+** the type of "!((x) - (x))" when used with bit-wise xor ^, saying
+** "invalid operands to binary ^ (have ‘int’ and ‘int’)" but these
+** problems oddly went away with the explicit cast to int.
 */
 #if 1
 #define AIR_EXISTS(x) (airExists(x))
 #else
-#define AIR_EXISTS(x) (!((x) - (x)))
+#define AIR_EXISTS(x) (AIR_CAST(int, !((x) - (x))))
 #endif
 
 
