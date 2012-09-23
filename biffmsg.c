@@ -141,7 +141,7 @@ biffMsgLineLenMax(const biffMsg *msg) {
   }
   maxlen = 0;
   for (ii=0; ii<msg->errNum; ii++) {
-    len = AIR_CAST(unsigned int, strlen(msg->err[ii]) + strlen(msg->key) + strlen("[] \n"));
+    len = AIR_UINT(strlen(msg->err[ii]) + strlen(msg->key) + strlen("[] \n"));
     maxlen = AIR_MAX(maxlen, len);
   }
   return maxlen;
@@ -247,7 +247,7 @@ biffMsgStrlen(const biffMsg *msg) {
 
   len = 0;
   for (ii=0; ii<msg->errNum; ii++) {
-    len += AIR_CAST(unsigned int, strlen(msg->key) 
+    len += AIR_UINT(strlen(msg->key) 
                     + strlen(msg->err[ii]) + strlen("[] \n"));
   }
   return len+1;
