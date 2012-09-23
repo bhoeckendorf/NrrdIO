@@ -28,7 +28,7 @@
 void
 demoIO(char *filename) {
   char me[]="demoIO", newname[]="foo.nrrd", *err, *key, *val;
-  int kvn, kvi;
+  unsigned int kvn, kvi;
   Nrrd *nin;
 
   /* create a nrrd; at this point this is just an empty container */
@@ -54,7 +54,7 @@ demoIO(char *filename) {
   if (kvn) {
     for (kvi=0; kvi<kvn; kvi++) {
       nrrdKeyValueIndex(nin, &key, &val, kvi);
-      printf("%s: key:value %d = %s:%s\n", me, kvi, key, val);
+      printf("%s: key:value %u = %s:%s\n", me, kvi, key, val);
       free(key); free(val);
       key = val = NULL;
     }
