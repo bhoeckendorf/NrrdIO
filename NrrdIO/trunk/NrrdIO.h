@@ -399,7 +399,7 @@ NRRDIO_EXPORT char *airUnescape(char *s);
 NRRDIO_EXPORT char *airOneLinify(char *s);
 NRRDIO_EXPORT char *airToLower(char *str);
 NRRDIO_EXPORT char *airToUpper(char *str);
-NRRDIO_EXPORT unsigned int airOneLine(FILE *file, char *line, int size);
+NRRDIO_EXPORT unsigned int airOneLine(FILE *file, char *line, unsigned int size);
 
 /* sane.c */
 /*
@@ -784,7 +784,7 @@ __attribute__ ((format(printf,3,4)))
 #endif
 ;
 NRRDIO_EXPORT char *biffGet(const char *key);
-NRRDIO_EXPORT int biffGetStrlen(const char *key);
+NRRDIO_EXPORT unsigned int biffGetStrlen(const char *key);
 NRRDIO_EXPORT void biffSetStr(char *str, const char *key);
 NRRDIO_EXPORT void biffDone(const char *key);
 NRRDIO_EXPORT char *biffGetDone(const char *key);

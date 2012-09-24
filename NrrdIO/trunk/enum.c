@@ -68,8 +68,9 @@ _airEnumIndex(const airEnum *enm, int val) {
       }
     }
   } else {
-    /* HEY "AIR_IN_CL(1, val .." makes more sense, no? */
-    ret = AIR_IN_CL(0, val, (int)(enm->M)) ? val : 0; /* HEY scrutinize cast */
+    unsigned int uval;
+    uval = AIR_UINT(val);
+    ret = (0 <= val && uval <= enm->M) ? uval : 0;
   }
   return ret;
 }
@@ -86,7 +87,7 @@ airEnumValCheck(const airEnum *enm, int val) {
 
 const char *
 airEnumStr(const airEnum *enm, int val) {
-  int idx;
+  unsigned int idx;
 
   idx = _airEnumIndex(enm, val);
   return enm->str[idx];
@@ -94,7 +95,7 @@ airEnumStr(const airEnum *enm, int val) {
 
 const char *
 airEnumDesc(const airEnum *enm, int val) {
-  int idx;
+  unsigned int idx;
 
   idx = _airEnumIndex(enm, val);
   return enm->desc[idx];
