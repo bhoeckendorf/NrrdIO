@@ -203,7 +203,7 @@ enum {
 };
 /* endianAir.c */
 NRRDIO_EXPORT const airEnum *const airEndian;
-NRRDIO_EXPORT int airMyEndian();
+NRRDIO_EXPORT int airMyEndian(void);
 
 /* array.c: poor-man's dynamically resizable arrays */
 typedef struct {
@@ -520,13 +520,14 @@ NRRDIO_EXPORT void airMopDebug(airArray *arr);
 #define AIR_INT(x) AIR_CAST(int, x)
 
 /*
-******** AIR_VOIDP
+******** AIR_VOIDP, AIR_CVOIDP
 **
-** explicit casting to "void *" from non-void* pointers is strictly speaking
-** needed for the %p format specifier in printf-like functions; this is a
-** slightly more convenient form
+** explicit casting to "void *" (and "const void *") from non-void* pointers
+** is strictly speaking needed for the %p format specifier in printf-like
+** functions; this is a slightly more convenient form
 */
 #define AIR_VOIDP(x) AIR_CAST(void *, x)
+#define AIR_CVOIDP(x) AIR_CAST(const void *, x)
 
 /*
 ******** AIR_MALLOC, AIR_CALLOC
@@ -2026,9 +2027,9 @@ NRRDIO_EXPORT void nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX],
 NRRDIO_EXPORT void nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
                                    double scl, 
                                    const double vec[NRRD_SPACE_DIM_MAX]);
-NRRDIO_EXPORT double nrrdSpaceVecNorm(int sdim,
+NRRDIO_EXPORT double nrrdSpaceVecNorm(unsigned int sdim,
                                     const double vec[NRRD_SPACE_DIM_MAX]);
-NRRDIO_EXPORT int nrrdSpaceVecExists(int sdim,
+NRRDIO_EXPORT int nrrdSpaceVecExists(unsigned int sdim,
                                    double vec[NRRD_SPACE_DIM_MAX]);
 NRRDIO_EXPORT void nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
 

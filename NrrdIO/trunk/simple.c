@@ -45,7 +45,7 @@ nrrdBiffKey = "nrrd";
 unsigned int
 nrrdSpaceDimension(int space) {
   static const char me[]="nrrdSpaceDimension";
-  int ret;
+  unsigned int ret;
   
   if (!( AIR_IN_OP(nrrdSpaceUnknown, space, nrrdSpaceLast) )) {
     /* they gave us invalid or unknown space */
@@ -292,15 +292,16 @@ nrrdOriginCalculate(const Nrrd *nrrd,
   
   for (ai=0; ai<axisIdxNum; ai++) {
     size_t size;
+    double denom;
     size = axis[ai]->size;
     min = axis[ai]->min;
     center = (nrrdCenterUnknown != axis[ai]->center
               ? axis[ai]->center
               : defaultCenter);
+    denom = AIR_CAST(double, nrrdCenterCell == center ? size : size-1);
     spacing = (AIR_EXISTS(axis[ai]->spacing)
                ? axis[ai]->spacing
-               : ((axis[ai]->max - min)
-                  /(nrrdCenterCell == center ? size : size-1)));
+               : (axis[ai]->max - min)/denom);
     origin[ai] = min + (nrrdCenterCell == center ? spacing/2 : 0);
   }
   return nrrdOriginStatusOkay;
@@ -309,7 +310,7 @@ nrrdOriginCalculate(const Nrrd *nrrd,
 void
 nrrdSpaceVecCopy(double dst[NRRD_SPACE_DIM_MAX], 
                   const double src[NRRD_SPACE_DIM_MAX]) {
-  int ii;
+  unsigned int ii;
 
   for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
     dst[ii] = src[ii];
@@ -340,7 +341,7 @@ void
 nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX], 
                        double sclA, const double vecA[NRRD_SPACE_DIM_MAX],
                        double sclB, const double vecB[NRRD_SPACE_DIM_MAX]) {
-  int ii;
+  unsigned int ii;
   
   for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
     sum[ii] = sclA*vecA[ii] + sclB*vecB[ii];
@@ -350,7 +351,7 @@ nrrdSpaceVecScaleAdd2(double sum[NRRD_SPACE_DIM_MAX],
 void
 nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX], 
                    double scl, const double vec[NRRD_SPACE_DIM_MAX]) {
-  int ii;
+  unsigned int ii;
   
   for (ii=0; ii<NRRD_SPACE_DIM_MAX; ii++) {
     out[ii] = scl*vec[ii];
@@ -358,8 +359,8 @@ nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX],
 }
 
 double
-nrrdSpaceVecNorm(int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
-  int di;
+nrrdSpaceVecNorm(unsigned int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
+  unsigned int di;
   double nn;
 
   nn = 0;
@@ -371,7 +372,7 @@ nrrdSpaceVecNorm(int sdim, const double vec[NRRD_SPACE_DIM_MAX]) {
 
 void
 nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]) {
-  int di;
+  unsigned int di;
 
   for (di=0; di<NRRD_SPACE_DIM_MAX; di++) {
     vec[di] = AIR_NAN;
@@ -517,7 +518,7 @@ nrrdDescribe(FILE *file, const Nrrd *nrrd) {
   char stmp[AIR_STRLEN_SMALL];
 
   if (file && nrrd) {
-    fprintf(file, "Nrrd at 0x%p:\n", (void*)nrrd);
+    fprintf(file, "Nrrd at 0x%p:\n", AIR_CVOIDP(nrrd));
     fprintf(file, "Data at 0x%p is %s elements of type %s.\n", nrrd->data,
             airSprintSize_t(stmp, nrrdElementNumber(nrrd)),
             airEnumStr(nrrdType, nrrd->type));
@@ -568,8 +569,9 @@ nrrdDescribe(FILE *file, const Nrrd *nrrd) {
 }
 
 int
-nrrdSpaceVecExists(int sdim, double vec[NRRD_SPACE_DIM_MAX]) {
-  int ii, exists;
+nrrdSpaceVecExists(unsigned int sdim, double vec[NRRD_SPACE_DIM_MAX]) {
+  int exists;
+  unsigned int ii;
 
   exists = AIR_EXISTS(vec[0]);
   for (ii=1; ii<sdim; ii++) {
@@ -649,7 +651,7 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int useBiff) {
         if (AIR_EXISTS(nrrd->axis[dd].min)
             || AIR_EXISTS(nrrd->axis[dd].max)
             || AIR_EXISTS(nrrd->axis[dd].spacing)
-            || airStrlen(nrrd->axis[dd].units)) {
+            || !!airStrlen(nrrd->axis[dd].units)) {
           biffMaybeAddf(useBiff, NRRD,
                         "%s: axis[%d] has a direction vector, and so can't "
                         "have min, max, spacing, or units set", me, dd);
@@ -669,7 +671,7 @@ _nrrdFieldCheckSpaceInfo(const Nrrd *nrrd, int useBiff) {
     /* -------- */
     exists = AIR_FALSE;
     for (dd=0; dd<NRRD_SPACE_DIM_MAX; dd++) {
-      exists |= airStrlen(nrrd->spaceUnits[dd]);
+      exists |= !!airStrlen(nrrd->spaceUnits[dd]);
     }
     if (exists) {
       biffMaybeAddf(useBiff, NRRD,
@@ -1100,7 +1102,7 @@ _nrrdCheck(const Nrrd *nrrd, int checkData, int useBiff) {
   if (checkData) {
     if (!(nrrd->data)) {
       biffMaybeAddf(useBiff, NRRD, "%s: nrrd %p has NULL data pointer", 
-                    me, AIR_VOIDP(nrrd));
+                    me, AIR_CVOIDP(nrrd));
       return 1;
     }
   }
@@ -1375,6 +1377,7 @@ nrrdSanity(void) {
              airInsaneErr(aret));
     return 0;
   }
+
 
   if (airEnumValCheck(nrrdEncodingType, nrrdDefaultWriteEncodingType)) {
     biffAddf(NRRD,
