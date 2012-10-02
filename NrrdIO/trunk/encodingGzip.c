@@ -47,7 +47,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
   size_t sizeData, sizeRed, sizeChunk;
   int error;
   long int bi;
-  unsigned int read;
+  unsigned int didread;
   char *data;
   gzFile gzfin;
   airPtrPtrUnion appu;
@@ -95,10 +95,10 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
        required data.  Cast on third arg ok because of AIR_MIN use above */
     while (!(error = _nrrdGzRead(gzfin, buff + sizeRed,
                                  AIR_CAST(unsigned int, sizeChunk),
-                                 &read))
-           && read > 0) {
-      sizeRed += read;
-      if (read >= sizeChunk) {
+                                 &didread))
+           && didread > 0) {
+      sizeRed += didread;
+      if (didread >= sizeChunk) {
         /* we were able to read as much data as we requested, maybe there is
            more, so we need to make our temp buffer bigger */
         airArrayLenIncr(buffArr, sizeChunk);
@@ -129,7 +129,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
       for (bi=0; bi<nio->byteSkip; bi++) {
         unsigned char b;
         /* Check to see if a single byte was able to be read. */
-        if (_nrrdGzRead(gzfin, &b, 1, &read) != 0 || read != 1) {
+        if (_nrrdGzRead(gzfin, &b, 1, &didread) != 0 || didread != 1) {
           biffAddf(NRRD, "%s: hit an error skipping byte %ld of %ld",
                    me, bi, nio->byteSkip);
           return 1;
@@ -138,11 +138,11 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
     }
     /* Pointer to chunks as we read them. */
     data = AIR_CAST(char *, _data);
-    while (!(error = _nrrdGzRead(gzfin, data, sizeChunk, &read))
-           && read > 0) {
+    while (!(error = _nrrdGzRead(gzfin, data, sizeChunk, &didread))
+           && didread > 0) {
       /* Increment the data pointer to the next available chunk. */
-      data += read; 
-      sizeRed += read;
+      data += didread; 
+      sizeRed += didread;
       /* We only want to read as much data as we need, so we need to check
          to make sure that we don't request data that might be there but that
          we don't want.  This will reduce sizeChunk when we get to the last
@@ -202,7 +202,7 @@ _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
   /* Set format string based on the NrrdIoState parameters. */
   fmt[fmt_i++] = 'w';
   if (0 <= nio->zlibLevel && nio->zlibLevel <= 9)
-    fmt[fmt_i++] = '0' + nio->zlibLevel;
+    fmt[fmt_i++] = AIR_CAST(char, '0' + nio->zlibLevel);
   switch (nio->zlibStrategy) {
   case nrrdZlibStrategyHuffman:
     fmt[fmt_i++] = 'h';
