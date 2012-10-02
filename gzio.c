@@ -300,7 +300,7 @@ _nrrdGzClose (gzFile file) {
 ** Returns the number of bytes actually read (0 for end of file).
 */
 int
-_nrrdGzRead(gzFile file, void* buf, unsigned int len, unsigned int* read) {
+_nrrdGzRead(gzFile file, void* buf, unsigned int len, unsigned int* didread) {
   static const char me[]="_nrrdGzRead";
   _NrrdGzStream *s = (_NrrdGzStream*)file;
   Bytef *start = (Bytef*)buf; /* starting point for crc computation */
@@ -308,18 +308,18 @@ _nrrdGzRead(gzFile file, void* buf, unsigned int len, unsigned int* read) {
 
   if (s == NULL || s->mode != 'r') {
     biffAddf(NRRD, "%s: invalid stream or file mode", me);
-    *read = 0;
+    *didread = 0;
     return 1;
   }
 
   if (s->z_err == Z_DATA_ERROR || s->z_err == Z_ERRNO) {
     biffAddf(NRRD, "%s: data read error", me);
-    *read = 0;
+    *didread = 0;
     return 1;
   }
 
   if (s->z_err == Z_STREAM_END) {
-    *read = 0;
+    *didread = 0;
     return 0;  /* EOF */
   }
 
@@ -349,7 +349,7 @@ _nrrdGzRead(gzFile file, void* buf, unsigned int len, unsigned int* read) {
       s->stream.total_in  += len;
       s->stream.total_out += len;
       if (len == 0) s->z_eof = 1;
-      *read = len;
+      *didread = len;
       return 0;
     }
     if (s->stream.avail_in == 0 && !s->z_eof) {
@@ -396,7 +396,7 @@ _nrrdGzRead(gzFile file, void* buf, unsigned int len, unsigned int* read) {
   }
   s->crc = crc32(s->crc, start, (uInt)(s->stream.next_out - start));
 
-  *read = len - s->stream.avail_out;
+  *didread = len - s->stream.avail_out;
   return 0;
 }
 

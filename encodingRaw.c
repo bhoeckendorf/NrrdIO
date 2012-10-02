@@ -61,7 +61,8 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
       biffAddf(NRRD, "%s: airDioRead got read only %s of %sbytes "
                "(%g%% of expected)", me,
                airSprintSize_t(stmp[0], ret), 
-               airSprintSize_t(stmp[1], bsize), 100.0*ret/bsize);
+               airSprintSize_t(stmp[1], bsize),
+               100.0*AIR_CAST(double, ret)/AIR_CAST(double, bsize));
       return 1;
     }
   } else {
@@ -96,7 +97,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
                  airSprintSize_t(stmp[0], ret),
                  airSprintSize_t(stmp[1], nrrdElementSize(nrrd)),
                  airSprintSize_t(stmp[2], elementNum),
-                 100.0*ret/elementNum);
+                 100.0*AIR_CAST(double, ret)/AIR_CAST(double, elementNum));
         return 1;
       }
     }
@@ -112,8 +113,10 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
     if (2 <= nrrdStateVerboseIO && nio->byteSkip && stdin != file) {
       savePos = ftell(file);
       if (!fseek(file, 0, SEEK_END)) {
-        fprintf(stderr, "(%s: used %g%% of file for nrrd data)\n",
-                me, 100.0*bsize/(ftell(file) + 1));
+        double frac = (AIR_CAST(double, bsize)
+                       /AIR_CAST(double, ftell(file) + 1));
+        fprintf(stderr, "(%s: used %g%% of file for nrrd data)\n", me,
+                100.0*frac);
         fseek(file, savePos, SEEK_SET);
       }
     }
@@ -151,7 +154,7 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
                "(%g%% of expected)", me,
                airSprintSize_t(stmp[0], ret),
                airSprintSize_t(stmp[1], bsize),
-               100.0*ret/bsize);
+               100.0*AIR_CAST(double, ret)/AIR_CAST(double, bsize));
       return 1;
     }
   } else {
@@ -186,7 +189,7 @@ _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
                  airSprintSize_t(stmp[0], ret),
                  airSprintSize_t(stmp[1], nrrdElementSize(nrrd)),
                  airSprintSize_t(stmp[2], elementNum),
-                 100.0*ret/elementNum);
+                 100.0*AIR_CAST(double, ret)/AIR_CAST(double, elementNum));
         return 1;
       }
     }
