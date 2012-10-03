@@ -1821,11 +1821,22 @@ typedef struct NrrdIoState_t {
   long int byteSkip;        /* exactly like lineSkip, but bytes
                                instead of lines.  First the lines are
                                skipped, then the bytes */
+  /* Note that the NRRD0004 and NRRD0005 file formats indicate that a numbered
+     sequence of data filenames should be indexed via a "%d" format
+     specification, and that the format doc says nothing about the "min" and
+     "max" fields of "data file" being only positive.  So the following
+     dataFN* fields are appropriately (signed) ints, even if all normal usage
+     could also be represented with unsigned ints.  Nonetheless, the return
+     from _nrrdDataFNNumber(), which gives the total number of file names, is
+     still appropriately an unsigned int. This may be revisited if the file
+     format itself is adjusted. */
   int dataFNMin,            /* used with dataFNFormat to identify .. */
     dataFNMax,              /* .. all the multiple detached datafiles */
-    dataFNStep,             /* how to step from max to min */
-    dataFNIndex,            /* which of the data files are being read */
-    pos,                    /* line[pos] is beginning of stuff which
+    dataFNStep;             /* how to step from max to min */
+  /* On the other hand, dataFNIndex ranges from 0 to (#datafiles-1), 
+     and not dataFNMin to dataFNMax, so it really should be unsigned */
+  unsigned int dataFNIndex; /* which of the data files are being read */
+  int pos,                  /* line[pos] is beginning of stuff which
                                still has yet to be parsed */
     endian,                 /* endian-ness of the data in file, for
                                those encoding/type combinations for
