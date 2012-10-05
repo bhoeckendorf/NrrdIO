@@ -127,64 +127,6 @@ airArrayPointerCB(airArray *a,
   }
 }
 
-/*
-******** airArrayLenPreSet()
-**
-** allocates the array to hold up to given length, without 
-** actually changing the length.  In order for this to be 
-** useful, this also turns on noReallocWhenSmaller
-**
-** NB: this used to have a "boolean" return to indicate allocation
-** error, but nothing in Teem actually did the error checking.  Now
-** conscientious users can look at NULL-ity of a->data to detect such
-** an error.
-*/
-void
-airArrayLenPreSet(airArray *a, unsigned int newlen) {
-  /* char me[]="airArrayLenPreSet"; */
-  unsigned int newsize;
-  void *newdata;
-
-  if (!a) {
-    return;
-  }
-
-  if (newlen == 0) {
-    /* there is no pre-set length, turn off noReallocWhenSmaller */
-    a->noReallocWhenSmaller = AIR_FALSE;
-  } else {
-    newsize = (newlen-1)/a->incr + 1;
-    /*
-    fprintf(stderr, "!%s: newlen = %u, incr = %u -> newsize = %u\n", me,
-            newlen, a->incr, newsize);
-    fprintf(stderr, "!%s: a->size = %u, a->len = %u, a->unit = %u\n", me,
-            a->size, a->len, a->unit);
-    */
-    if (newsize > a->size) {
-      newdata = calloc(newsize*a->incr, a->unit);
-      /*
-      fprintf(stderr, "!%s: a->data = %p, newdata = %p\n", me, 
-              a->data, newdata);
-      */
-      if (!newdata) {
-        free(a->data);
-        _airSetData(a, NULL);
-        return;
-      }
-      if (a->data) {
-        memcpy(newdata, a->data, AIR_MIN(a->len*a->unit, 
-                                         newsize*a->incr*a->unit));
-        free(a->data);
-      }
-      _airSetData(a, newdata);
-      a->size = newsize;
-    }
-    a->noReallocWhenSmaller = AIR_TRUE;
-  }
-
-  /* fprintf(stderr, "!%s: returning data %p\n", me, a->data); */
-  return;
-}
 
 /*
 ******** airArrayLenSet()
