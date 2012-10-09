@@ -494,6 +494,7 @@ NRRDIO_EXPORT void airMopError(airArray *arr);
 NRRDIO_EXPORT void airMopOkay(airArray *arr);
 NRRDIO_EXPORT void airMopDebug(airArray *arr);
 
+
 /*******     the interminable sea of defines and macros     *******/
 
 #define AIR_TRUE 1
