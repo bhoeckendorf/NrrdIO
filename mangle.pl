@@ -72,24 +72,14 @@ while (<NM>) {
     if (m/.*\.eh$/) {
         next;
     }
-    if (m/ [TBDRStb] /) {
-        s|.* [TBDRStb] (.*)|$1|g;
+    if (m/ [TBDRSb] /) {
+        s|.* [TBDRSb] (.*)|$1|g;
         if ($mac) {
             s|^_||g;
         }
         chop;
         $sym = $_;
         print "#define ${sym} ${prefix}_${sym}\n";
-    } else {
-      if (m/nrrd/) {
-          s|.* . (.*nrrd*)|$1|g;
-          if ($mac) {
-            s|^_||g;
-          }
-          chop;
-          $sym = $_;
-          print "#define ${sym} ${prefix}_${sym}\n";
-        }
     }
 }
 close(NM);
