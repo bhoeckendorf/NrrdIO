@@ -24,7 +24,7 @@
 */
 
 
-
+#include "NrrdConfigure.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -56,7 +56,10 @@
                                         easy numerical comparison */
 #define TEEM_VERSION_STRING "1.11.0" /* cannot be so easily compared */
 
-
+/* THE FOLLOWING INCLUDE IS ONLY FOR THE ITK DISTRIBUTION.
+   This header mangles the symbols in the NrrdIO library, preventing
+   conflicts in applications linked against two versions of NrrdIO. */
+#include "itk_NrrdIO_mangle.h"
 
 #ifdef __cplusplus
 extern "C" {
