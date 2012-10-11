@@ -168,7 +168,7 @@ extern int _nrrdMaybeAllocMaybeZero_nva(Nrrd *nrrd, int type,
 #if TEEM_VTK_MANGLE
 #include "vtk_zlib_mangle.h"
 #endif
-#include "itk_zlib.h"
+#include <zlib.h>
 
 /* gzio.c */
 extern gzFile _nrrdGzOpen(FILE* fd, const char *mode);

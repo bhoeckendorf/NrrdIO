@@ -47,13 +47,6 @@ miscAir.c simple.c )
 # used on windows builds.
 ADD_DEFINITIONS(-DTEEM_BUILD=1)
 
-# Set compiler flags for endian-ness.
-#IF(CMAKE_WORDS_BIGENDIAN)
-#  ADD_DEFINITIONS(-DTEEM_ENDIAN=4321)
-#ELSE(CMAKE_WORDS_BIGENDIAN)
-#  ADD_DEFINITIONS(-DTEEM_ENDIAN=1234)
-#ENDIF(CMAKE_WORDS_BIGENDIAN)
-
 #The QNANHIBIT variable is configured by the root level CMakeLists.txt
 IF(QNANHIBIT)
   ADD_DEFINITIONS(-DTEEM_QNANHIBIT=1)
