@@ -264,7 +264,7 @@ _nrrdCenterDesc[NRRD_CENTER_MAX+1] = {
   "samples are at centers of elements along axis",
 };
 
-airEnum
+static const airEnum
 _nrrdCenter_enum = {
   "centering",
   NRRD_CENTER_MAX,
@@ -476,7 +476,7 @@ _nrrdKindVal_Eqv[] = {
         nrrdKind3DMaskedMatrix,
 };
 
-airEnum
+static const airEnum
 _nrrdKind_enum = {
   "kind",
   NRRD_KIND_MAX,
@@ -641,7 +641,7 @@ _nrrdFieldValEqv[] = {
   nrrdField_data_file, nrrdField_data_file,
 };
 
-airEnum
+static const airEnum
 _nrrdField = {
   "nrrd_field",
   NRRD_FIELD_MAX,
@@ -755,7 +755,7 @@ _nrrdSpaceValEqv[] = {
      nrrdSpace3DLeftHandedTime
 };
 
-airEnum
+static const airEnum
 _nrrdSpace = {
   "space",
   NRRD_SPACE_MAX,
@@ -787,7 +787,7 @@ _nrrdSpacingStatusDesc[NRRD_BOUNDARY_MAX+1] = {
   "axis->spaceDirection set normally",
 };
 
-airEnum
+static const airEnum
 _nrrdSpacingStatus = {
   "spacing status",
   NRRD_SPACING_STATUS_MAX,

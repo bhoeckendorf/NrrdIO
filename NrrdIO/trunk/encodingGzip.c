@@ -26,7 +26,7 @@
 #include "NrrdIO.h"
 #include "privateNrrd.h"
 
-int
+static int
 _nrrdEncodingGzip_available(void) {
 
 #if TEEM_ZLIB
@@ -47,7 +47,7 @@ _nrrdZlibMaxChunk = UINT_MAX;
 /*
 ** nio->byteSkip < 0 functionality contributed by Katharina Quintus
 */
-int
+static int
 _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
                        Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingGzip_read";
@@ -204,7 +204,7 @@ _nrrdEncodingGzip_read(FILE *file, void *_data, size_t elNum,
 #endif
 }
 
-int
+static int
 _nrrdEncodingGzip_write(FILE *file, const void *_data, size_t elNum,
                         const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingGzip_write";
