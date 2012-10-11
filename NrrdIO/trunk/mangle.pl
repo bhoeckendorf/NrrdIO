@@ -72,8 +72,8 @@ while (<NM>) {
     if (m/.*\.eh$/) {
         next;
     }
-    if (m/ [TBDRSb] /) {
-        s|.* [TBDRSb] (.*)|$1|g;
+    if (m/ [TBDRS] /) {
+        s|.* [TBDRS] (.*)|$1|g;
         if ($mac) {
             s|^_||g;
         }
