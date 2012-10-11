@@ -82,7 +82,7 @@ int
 main(int argc, char **argv) {
   char *err, *me;
   int enc, form, miss;
-  
+
   me = argv[0];
   fprintf(stderr, "(from Teem %s, %s)\n", 
           airTeemVersion, airTeemReleaseDate);
