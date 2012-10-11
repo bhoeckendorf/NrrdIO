@@ -210,8 +210,8 @@ airFPPartsToVal_d(unsigned int sign,
                   unsigned int expo,
                   unsigned int mant0,
                   unsigned int mant1) {
-  _airDoubleEndianBig dbig;
   _airDoubleEndianLittle dlit;
+  _airDoubleEndianBig dbig;
 
   FP_SET_D(dlit, dbig, sign, expo, mant0, mant1);
   return (airEndianLittle == airMyEndian()
@@ -232,8 +232,8 @@ airFPValToParts_d(unsigned int *signP,
                   unsigned int *expoP,
                   unsigned int *mant0P,
                   unsigned int *mant1P, double v) {
-  _airDoubleEndianBig dbig;
   _airDoubleEndianLittle dlit;
+  _airDoubleEndianBig dbig;
 
   dlit.v = dbig.v = v;
   FP_GET_D(*signP, *expoP, *mant0P, *mant1P, dlit, dbig);
@@ -249,8 +249,8 @@ airFPValToParts_d(unsigned int *signP,
 */
 float 
 airFPGen_f(int cls) {
-  _airFloatEndianBig fbig;
   _airFloatEndianLittle flit;
+  _airFloatEndianBig fbig;
 
   switch(cls) {
   case airFP_SNAN:
@@ -442,7 +442,7 @@ airFPClass_f(float val) {
 int
 airFPClass_d(double val) {
   _airDoubleEndianLittle dlit;
-  _airDoubleEndianLittle dbig;
+  _airDoubleEndianBig dbig;
   unsigned int sign, expo, mant0, mant1;
   int indexv, ret=0;
   unsigned char hibit;
