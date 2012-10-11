@@ -26,13 +26,13 @@
 #include "NrrdIO.h"
 #include "privateNrrd.h"
 
-int
+static int
 _nrrdEncodingRaw_available(void) {
 
   return AIR_TRUE;
 }
 
-int
+static int
 _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
                       Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingRaw_read";
@@ -125,7 +125,7 @@ _nrrdEncodingRaw_read(FILE *file, void *data, size_t elementNum,
   return 0;
 }
 
-int
+static int
 _nrrdEncodingRaw_write(FILE *file, const void *data, size_t elementNum,
                        const Nrrd *nrrd, NrrdIoState *nio) {
   static const char me[]="_nrrdEncodingRaw_write";

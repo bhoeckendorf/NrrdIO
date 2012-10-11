@@ -45,7 +45,7 @@
 ** The "unknown" format is intended as a template for writing new formats.
 */
 
-int
+static int
 _nrrdFormatUnknown_available(void) {
 
   /* insert code here */
@@ -53,7 +53,7 @@ _nrrdFormatUnknown_available(void) {
   return AIR_FALSE;
 }
 
-int
+static int
 _nrrdFormatUnknown_nameLooksLike(const char *filename) {
   
   /* insert code here */
@@ -62,7 +62,7 @@ _nrrdFormatUnknown_nameLooksLike(const char *filename) {
   return AIR_FALSE;
 }
 
-int
+static int
 _nrrdFormatUnknown_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
                             int useBiff) {
   static const char me[]="_nrrdFormatUnknown_fitsInto";
@@ -78,7 +78,7 @@ _nrrdFormatUnknown_fitsInto(const Nrrd *nrrd, const NrrdEncoding *encoding,
   return AIR_FALSE;
 }
 
-int
+static int
 _nrrdFormatUnknown_contentStartsLike(NrrdIoState *nio) {
   
   /* insert code here */
@@ -87,7 +87,7 @@ _nrrdFormatUnknown_contentStartsLike(NrrdIoState *nio) {
   return AIR_FALSE;
 }
 
-int
+static int
 _nrrdFormatUnknown_read(FILE *file, Nrrd *nrrd,
                         NrrdIoState *nio) {
   static const char me[]="_nrrdFormatUnknown_read";
@@ -101,7 +101,7 @@ _nrrdFormatUnknown_read(FILE *file, Nrrd *nrrd,
   return 1;
 }
 
-int
+static int
 _nrrdFormatUnknown_write(FILE *file, const Nrrd *nrrd,
                          NrrdIoState *nio) {
   static const char me[]="_nrrdFormatUnknown_write";
@@ -115,7 +115,7 @@ _nrrdFormatUnknown_write(FILE *file, const Nrrd *nrrd,
   return 1;
 }
 
-const NrrdFormat
+static const NrrdFormat
 _nrrdFormatUnknown = {
   "unknown",
   AIR_FALSE,  /* isImage */
