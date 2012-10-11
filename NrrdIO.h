@@ -93,7 +93,7 @@ typedef unsigned long long airULLong;
 ** might end up being.  It would be theoretically better to completely
 ** avoid the use of fixed-size buffers, but in many contexts the
 ** implementation complexity of handling them reliably is distracts
-** from more urgent implementation goals.  In the mean time, these can 
+** from more urgent implementation goals.  In the mean time, these can
 ** be used safely as long as the lengths are used consistently.
 **
 ** The possibly unfortunate convention that has become established in
@@ -106,7 +106,7 @@ typedef unsigned long long airULLong;
 #define AIR_STRLEN_SMALL (128+1) /* has to be big enough to hold:
                                   - printed value of size_t and ptrdiff_t,
                                   - line of text that should contain file
-                                    format "magic" 
+                                    format "magic"
                                   */
 #define AIR_STRLEN_MED   (256+1)
 #define AIR_STRLEN_LARGE (512+1)
@@ -138,8 +138,8 @@ typedef union {
 
 /*
 ******** airEnum struct
-** 
-** The airEnum provides the basic mechanism of mapping from a 
+**
+** The airEnum provides the basic mechanism of mapping from a
 ** string to an int enum value, and back.
 */
 typedef struct {
@@ -148,9 +148,9 @@ typedef struct {
   unsigned int M;
                /* str[0]: string for the unknown/invalid value;
                 * str[1] .. str[M]: canonical strings for the enum values;
-                * "val" NULL: unknown/invalid = 0; 
+                * "val" NULL: unknown/invalid = 0;
                 *             valid values are 1 .. M
-                * "val" non-NULL: unknown/invalid = val[0]; 
+                * "val" non-NULL: unknown/invalid = val[0];
                 *                 valid are val[1].. val[M]
                 */
   const char **str; 
@@ -415,7 +415,7 @@ enum {
   airInsane_FltDblFPClass, /*  5: double -> float assignment messed up the
                                airFPClass_f() of the value */
   airInsane_QNaNHiBit,     /*  6: airMyQNaNHiBit is wrong */
-  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN) wrong 
+  airInsane_AIR_NAN,       /*  7: airFPClass_f(AIR_QNAN) wrong
                                   (no longer checking on problematic SNAN) */
   airInsane_dio,           /*  8: airMyDio set to something invalid */
   airInsane_UCSize,        /*  9: unsigned char isn't 8 bits */
@@ -596,7 +596,7 @@ NRRDIO_EXPORT void airMopDebug(airArray *arr);
 ** airSanity fails because a special value "exists", then use the
 ** first version of AIR_EXISTS.
 **
-** There is a performance consequence of using airExists(x), in that it 
+** There is a performance consequence of using airExists(x), in that it
 ** is a function call, although (HEY) we should facilitate inline'ing it
 ** for compilers that know how to.
 **
@@ -1432,7 +1432,7 @@ extern "C" {
 ** lower axis.)  In addition, the final statement of the macro prevents the
 ** last index from going past a valid value.
 **
-** Assumptions: 
+** Assumptions:
 ** -- coord[] and size[] should both be arrays of unsigned integral values,
 **    presumably size_t
 ** -- size[i] is >= 1 for all i<dim (size 0 is invalid)
@@ -1440,8 +1440,8 @@ extern "C" {
 ** Violating these will create invalid coordinate arrays or generate
 ** compiler warnings about comparisons between signed and unsigned.
 **
-** The "ddd" variable name in this and subsequent macros is an effort to 
-** avoid shadowing.
+** The "ddd" variable name in this and subsequent macros is an effort to
+** avoid possible symbol name shadowing.
 */
 #define NRRD_COORD_UPDATE(coord, size, dim)                             \
   {                                                                     \
@@ -1456,13 +1456,13 @@ extern "C" {
       (coord)[(dim)-1] = AIR_MIN((coord)[(dim)-1], (size)[(dim)-1]-1);  \
     }                                                                   \
   }
-  
+
 /*
 ******** NRRD_COORD_INCR
 **
 ** increments coord[idx] (by one) and then calls NRRD_COORD_UPDATE to
-** propagate this change as necessary to higher numbered axes.  Does 
-** nothing if idx>=dim, since that would be an invalid index into 
+** propagate this change as necessary to higher numbered axes.  Does
+** nothing if idx>=dim, since that would be an invalid index into
 ** coord[] and size[]
 */
 #define NRRD_COORD_INCR(coord, size, dim, idx)                          \
@@ -1470,7 +1470,7 @@ extern "C" {
     (coord)[(idx)]++;                                                   \
     NRRD_COORD_UPDATE((coord)+(idx), (size)+(idx), (dim)-(idx));        \
   }
-  
+
 /*
 ******** NRRD_INDEX_GEN
 **
@@ -1830,7 +1830,7 @@ typedef struct NrrdIoState_t {
   int dataFNMin,            /* used with dataFNFormat to identify .. */
     dataFNMax,              /* .. all the multiple detached datafiles */
     dataFNStep;             /* how to step from max to min */
-  /* On the other hand, dataFNIndex ranges from 0 to (#datafiles-1), 
+  /* On the other hand, dataFNIndex ranges from 0 to (#datafiles-1),
      and not dataFNMin to dataFNMax, so it really should be unsigned */
   unsigned int dataFNIndex; /* which of the data files are being read */
   int pos,                  /* line[pos] is beginning of stuff which
