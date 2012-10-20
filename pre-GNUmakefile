@@ -1,6 +1,6 @@
 #  
 # NrrdIO: stand-alone code for basic nrrd functionality
-# Copyright (C) 2011, 2010, 2009  University of Chicago
+# Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
 # Copyright (C) 2004, 2003, 2002, 2001, 2000, 1999, 1998  University of Utah
 #
@@ -97,10 +97,19 @@ NEED_PRIV_HDRS = air/privateAir.h biff/privateBiff.h nrrd/privateNrrd.h
 ### from air, biff, and nrrd
 ###
 .PHONY: all
-all: $(TEEM_HDRS) $(NEED_SRCS) $(NEED_PRIV_HDRS) NrrdIO.h NrrdIO_Srcs.txt
+ifeq (undefined,$(origin ITK_NRRDIO))
+  NRRDIO_H = NrrdIO.h
+else
+  NRRDIO_H = NrrdIO.h.in
+endif
+all: $(TEEM_HDRS) $(NEED_SRCS) $(NEED_PRIV_HDRS) $(NRRDIO_H) NrrdIO_Srcs.txt
 
 ### NrrdIO.h is basically the result of cat'ing together all the 
 ### teem headers in $(NEED_HDRS), but we do need to "unteem" them.
+### In the case of ITK, we have to put this into NrrdIO.h.in, so
+### that ITK's CMake to process the #cmakedefine line.  But we still
+### a NrrdIO.h to build the library here, in order to run nm to get
+### all the symbols for name mangling
 ###
 $(NEED_PUB_HDRS):
 	perl tail.pl < $(TEEM_SRC_ROOT)/src/$@ \
@@ -111,8 +120,9 @@ $(NEED_PRIV_HDRS):
          | cat preamble.c - \
          | perl unteem.pl \
          | grep -v HAS_BEEN_INCLUDED > $(notdir $@)
-NrrdIO.h: $(NEED_PUB_HDRS)
-	cat preamble.c $(notdir $(NEED_PUB_HDRS)) > NrrdIO.h
+$(NRRDIO_H): $(NEED_PUB_HDRS)
+	cat preamble.c $(notdir $(NEED_PUB_HDRS)) > $(NRRDIO_H)
+	$(if $(ITK_NRRDIO),,grep -v cmakedefine NrrdIO.h.in > NrrdIO.h)
 	rm -f $(notdir $(NEED_PUB_HDRS))
 
 ### NrrdIO_Srcs.txt is a list of all the source files that must be
@@ -142,5 +152,5 @@ teem/%.h:
 clean:
 	rm -f $(notdir $(TEEM_HDRS) $(NEED_SRCS) \
                        $(NEED_PUB_HDRS) $(NEED_PRIV_HDRS)) \
-              NrrdIO.h NrrdIO_Srcs.txt \
+              NrrdIO.in.h NrrdIO.h NrrdIO_Srcs.txt \
               *.o libNrrdIO.a sampleIO
