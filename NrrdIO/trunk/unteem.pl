@@ -48,8 +48,11 @@ while (<>) {
     } else {
 	s|\/\* NrrdIO-hack-000 \*\/||g;
     }
-    # apparently no longer needed as of Mon Aug 20 11:57:26 CDT 2012
-    # s|\/\* NrrdIO-hack-001 \*\/|#define TEEM_BUILD 1|g;
+    if ($ITK) {
+        s|\/\* NrrdIO-hack-001 \*\/|#cmakedefine TEEM_STATIC|g;
+    } else {
+        s|\/\* NrrdIO-hack-001 \*\/||g;
+    }
     s|.* \/\* NrrdIO-hack-002 \*\/|#if 1|g;
     s|.* \/\* NrrdIO-hack-003 \*\/|int nrrdStateVerboseIO = 0;|g;
     if ($ITK) {
