@@ -1,4 +1,4 @@
-#  
+#
 # NrrdIO: stand-alone code for basic nrrd functionality
 # Copyright (C) 2012, 2011, 2010, 2009  University of Chicago
 # Copyright (C) 2008, 2007, 2006, 2005  Gordon Kindlmann
@@ -63,7 +63,7 @@ $(warning * distribution (rather than a Teem installation))\
 $(warning *)\
 $(error Make quitting))
 
-### The following sources are pretty much stubs, to create the symbols, 
+### The following sources are pretty much stubs, to create the symbols,
 ### but not the functionality of different formats and the bzip2 encoding.
 ### As such, they are NOT copied from Teem but are made for NrrdIO.
 ###
@@ -104,7 +104,7 @@ else
 endif
 all: $(TEEM_HDRS) $(NEED_SRCS) $(NEED_PRIV_HDRS) $(NRRDIO_H) NrrdIO_Srcs.txt
 
-### NrrdIO.h is basically the result of cat'ing together all the 
+### NrrdIO.h is basically the result of cat'ing together all the
 ### teem headers in $(NEED_HDRS), but we do need to "unteem" them.
 ### In the case of ITK, we have to put this into NrrdIO.h.in, so
 ### that ITK's CMake to process the #cmakedefine line.  But we still
@@ -133,7 +133,7 @@ NrrdIO_Srcs.txt:
 
 ### The teem*.h headers: we need only change the pre-amble here
 ###
-teem/%.h: 
+teem/%.h:
 	perl tail.pl < $(TEEM_SRC_ROOT)/include/$(notdir $@) \
           | cat preamble.c - > $(notdir $@)
 
