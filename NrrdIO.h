@@ -55,14 +55,12 @@
                                         easy numerical comparison */
 #define TEEM_VERSION_STRING "1.11.0" /* cannot be so easily compared */
 
-/* THE FOLLOWING INCLUDE IS ONLY FOR THE ITK DISTRIBUTION.
-   This header mangles the symbols in the NrrdIO library, preventing
-   conflicts in applications linked against two versions of NrrdIO. */
-#include "itk_NrrdIO_mangle.h"
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 #if defined(_WIN32) && !defined(__CYGWIN__) && !defined(TEEM_STATIC)
 #  if defined(TEEM_BUILD) || defined(air_EXPORTS) || defined(teem_EXPORTS)
@@ -2012,8 +2010,7 @@ NRRDIO_EXPORT int nrrdSpaceSet(Nrrd *nrrd, int space);
 NRRDIO_EXPORT int nrrdSpaceDimensionSet(Nrrd *nrrd, unsigned int spaceDim);
 NRRDIO_EXPORT unsigned int nrrdSpaceOriginGet(const Nrrd *nrrd,
                                             double vector[NRRD_SPACE_DIM_MAX]);
-NRRDIO_EXPORT int nrrdSpaceOriginSet(Nrrd *nrrd,
-                                   double vector[NRRD_SPACE_DIM_MAX]);
+NRRDIO_EXPORT int nrrdSpaceOriginSet(Nrrd *nrrd, const double *vector);
 NRRDIO_EXPORT int nrrdOriginCalculate(const Nrrd *nrrd,
                                     unsigned int *axisIdx,
                                     unsigned int axisIdxNum,
