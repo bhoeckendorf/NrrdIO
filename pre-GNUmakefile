@@ -122,7 +122,7 @@ $(NEED_PRIV_HDRS):
          | grep -v HAS_BEEN_INCLUDED > $(notdir $@)
 $(NRRDIO_H): $(NEED_PUB_HDRS)
 	cat preamble.c $(notdir $(NEED_PUB_HDRS)) > $(NRRDIO_H)
-	$(if $(ITK_NRRDIO),,grep -v cmakedefine NrrdIO.h.in > NrrdIO.h)
+	$(if $(ITK_NRRDIO),grep -v cmakedefine NrrdIO.h.in > NrrdIO.h,)
 	rm -f $(notdir $(NEED_PUB_HDRS))
 
 ### NrrdIO_Srcs.txt is a list of all the source files that must be
