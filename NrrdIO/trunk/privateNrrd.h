@@ -129,10 +129,6 @@ extern void _nrrdAxisInfoNewInit(NrrdAxisInfo *axis);
 extern int _nrrdCenter(int center);
 extern int _nrrdCenter2(int center, int def);
 
-/* convert.c */
-extern void (*_nrrdConv[][NRRD_TYPE_MAX+1])(void *, const void *, size_t);
-extern void (*_nrrdClampConv[][NRRD_TYPE_MAX+1])(void *, const void *, size_t);
-
 /* read.c */
 extern char _nrrdFieldStr[NRRD_FIELD_MAX+1][AIR_STRLEN_SMALL];
 extern char _nrrdRelativePathFlag[];
