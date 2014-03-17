@@ -429,7 +429,9 @@ NRRDIO_EXPORT int airSanity(void);
 
 /* miscAir.c */
 NRRDIO_EXPORT const char *airTeemVersion;
+NRRDIO_EXPORT const int airTeemReleaseDone;
 NRRDIO_EXPORT const char *airTeemReleaseDate;
+NRRDIO_EXPORT void airTeemVersionSprint(char buff[AIR_STRLEN_LARGE]);
 NRRDIO_EXPORT void *airNull(void);
 NRRDIO_EXPORT void *airSetNull(void **ptrP);
 NRRDIO_EXPORT void *airFree(void *ptr);
@@ -2038,7 +2040,7 @@ NRRDIO_EXPORT void nrrdSpaceVecScale(double out[NRRD_SPACE_DIM_MAX],
 NRRDIO_EXPORT double nrrdSpaceVecNorm(unsigned int sdim,
                                     const double vec[NRRD_SPACE_DIM_MAX]);
 NRRDIO_EXPORT int nrrdSpaceVecExists(unsigned int sdim,
-                                   double vec[NRRD_SPACE_DIM_MAX]);
+                                   const double vec[NRRD_SPACE_DIM_MAX]);
 NRRDIO_EXPORT void nrrdSpaceVecSetNaN(double vec[NRRD_SPACE_DIM_MAX]);
 
 /******** comments related */

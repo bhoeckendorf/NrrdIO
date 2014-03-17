@@ -57,7 +57,6 @@ nrrdPeripheralCopy(Nrrd *nout, const Nrrd *nin) {
 }
 */
 
-
 /* ------------------------------------------------------------ */
 
 void
