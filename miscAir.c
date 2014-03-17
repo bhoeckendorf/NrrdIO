@@ -36,6 +36,7 @@
 
 /*
 ******** airTeemVersion
+******** airTeemReleaseDone
 ******** airTeemReleaseDate
 **
 ** updated with each release to contain a string representation of
@@ -44,8 +45,25 @@
 */
 const char *
 airTeemVersion = TEEM_VERSION_STRING;
+const int
+airTeemReleaseDone = AIR_FALSE;
 const char *
-airTeemReleaseDate = "8 August 2013";
+airTeemReleaseDate = "2014, with luck";
+
+/*
+******** airTeemVersionSprint
+**
+** uniform way of printing information about the Teem version
+*/
+void
+airTeemVersionSprint(char buff[AIR_STRLEN_LARGE]) {
+  sprintf(buff, "Teem version %s, %s%s%s",
+          airTeemVersion,
+          airTeemReleaseDone ? "released on " : "",
+          airTeemReleaseDate,
+          airTeemReleaseDone ? "" : " (not yet released)");
+  return;
+}
 
 double
 _airSanityHelper(double val) {
