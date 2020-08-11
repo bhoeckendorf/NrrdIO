@@ -80,7 +80,7 @@ ENDIF(QNANHIBIT)
 
 # Possibly turn on usage of zlib compression (requires linking with libz)
 # (i.e., programs compiled with ITKNrrdIO must also be compiled with zlib)
-#ADD_DEFINITIONS(-DTEEM_ZLIB=1)
+ADD_DEFINITIONS(-DTEEM_ZLIB=1)
 
 ADD_LIBRARY(NrrdIO SHARED ${nrrdio_SRCS})
 ADD_LIBRARY(NrrdIO_static STATIC ${nrrdio_SRCS})
