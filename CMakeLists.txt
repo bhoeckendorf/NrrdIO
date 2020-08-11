@@ -82,7 +82,8 @@ ENDIF(QNANHIBIT)
 # (i.e., programs compiled with ITKNrrdIO must also be compiled with zlib)
 #ADD_DEFINITIONS(-DTEEM_ZLIB=1)
 
-ADD_LIBRARY(NrrdIO ${nrrdio_SRCS} )
+ADD_LIBRARY(NrrdIO SHARED ${nrrdio_SRCS})
+ADD_LIBRARY(NrrdIO_static STATIC ${nrrdio_SRCS})
 
 ## These are ITK-specific
 #TARGET_LINK_LIBRARIES(NrrdIO ${ITK_ZLIB_LIBRARIES} )
