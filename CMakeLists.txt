@@ -47,6 +47,20 @@ miscAir.c simple.c )
 # used on windows builds.
 ADD_DEFINITIONS(-DTEEM_BUILD=1)
 
+#
+# Adapted from Teem root level CMakeLists to detect QNANHIBIT without building all of Teem
+#
+#-----------------------------------------------------------------------------
+# Find platform-specific differences in the handling of IEEE floating point special values.
+# This is needed by Teem
+include(${PROJECT_SOURCE_DIR}/CMake/TestQnanhibit.cmake)
+TEST_QNANHIBIT(QNANHIBIT_VALUE ${PROJECT_SOURCE_DIR}/CMake)
+if(QNANHIBIT_VALUE)
+    set(QNANHIBIT 1 CACHE INTERNAL "The 22nd bit of 32-bit floating-point quiet NaN.")
+else()
+    set(QNANHIBIT 0 CACHE INTERNAL "The 22nd bit of 32-bit floating-point quiet NaN.")
+endif()
+
 #The QNANHIBIT variable is configured by the root level CMakeLists.txt
 IF(QNANHIBIT)
   ADD_DEFINITIONS(-DTEEM_QNANHIBIT=1)
